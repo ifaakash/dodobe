@@ -1,0 +1,48 @@
+stages:
+  - runner_up
+  - build
+  - test
+  - deploy_dev
+  - deploy_prd
+  - runner_down
+
+variables:
+  AWS_DEFAULT_REGION: 'ap-south-1' # mumbai region for AWS
+  IMAGE_TAG: 'dev-backend'
+  IMAGE_NAME: 'aakashio/dodo'
+
+# cache node modules for faster builds
+cache:
+  paths:
+    - node_modules/
+  
+# start the runner for image building foundation
+.start_ec2:
+  stage: runner_up
+  image: python:3.9
+  script:
+    - pip install boto3
+    - python -c "import boto3; boto3.client('sts').get_caller_identity()"
+    - python start_ec2.py
+
+# Build the image for the application and push to dockerhub
+build-application:
+  stage: build
+  tags:
+    - dodo-group-runner
+  before_script:
+    - unset DOCKER_HOST
+    - docker login -u $GITLAB_USERNAME -p $REGISTRY_PASSWORD $GITLAB_REGISTRY
+  script:
+    - docker build -t registry.gitlab.com/dodo1604703/dododb/dodo-test-backend .
+    - docker images
+    - docker push registry.gitlab.com/dodo1604703/dododb/dodo-test-backend
+ #   - docker image push $DOCKER_REGISTRY/$IMAGE_NAME:$IMAGE_TAG
+
+# stop the runner after deployment
+.stop_ec2:
+  stage: runner_down
+  image: python:3.9
+  script:
+    - pip install boto3
+    - python stop_ec2.py
