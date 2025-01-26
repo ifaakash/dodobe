@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.DodoPageModel = exports.UserInterestCategoryModel = exports.UserModel = void 0;
+const mongoose_1 = require("mongoose");
+const schema_1 = require("./schema");
+const UserModel = (0, mongoose_1.model)("User", schema_1.userSchema);
+exports.UserModel = UserModel;
+const UserInterestCategoryModel = (0, mongoose_1.model)("UserInterestCategory", schema_1.userInterestCategorySchema);
+exports.UserInterestCategoryModel = UserInterestCategoryModel;
+const DodoPageModel = (0, mongoose_1.model)("DodoPage", schema_1.dodoPageSchema);
+exports.DodoPageModel = DodoPageModel;
