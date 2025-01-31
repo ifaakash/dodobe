@@ -45,11 +45,7 @@ deploy_to_development:
   script:
     - echo "$SSH_PRIVATE_KEY" > dodokey.pem
     - chmod 600 dodokey.pem
-    - ssh -o StrictHostKeyChecking=no -i dodokey.pem ubuntu@ec2-35-154-103-10.ap-south-1.compute.amazonaws.com << 'EOF'
-      docker pull hello-world
-      EOF
     - ssh -o StrictHostKeyChecking=no -i dodokey.pem buntu@ec2-35-154-103-10.ap-south-1.compute.amazonaws.com "docker pull hello-world"
-
 
 # remove image older than 48h from runner
 deprecated_image:
