@@ -40,16 +40,12 @@ cache:
 
 deploy_to_development:
   stage: deploy_dev
-  before_script:
-    - apt-get update && apt-get install -y openssh-client
   tags: 
     - dodo-group-runner
   script:
     - echo "$SSH_PRIVATE_KEY" > dodokey.pem
     - chmod 600 dodokey.pem
-    - ssh -o StrictHostKeyChecking=no -i dodokey.pem ubuntu@ec2-35-154-103-10.ap-south-1.compute.amazonaws.com << 'EOF'
-      docker pull hello-world
-      EOF
+    - ssh -o StrictHostKeyChecking=no -i dodokey.pem ubuntu@your-ec2-instance "docker pull hello-world"
 
 # remove image older than 48h from runner
 deprecated_image:
