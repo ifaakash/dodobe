@@ -43,10 +43,11 @@ deploy_to_development:
   tags: 
     - dodo-group-runner
   script:
-    - pwd && ls
-    # /home/gitlab-runner/builds/t2__NbzGs/0/dodo1604703/dodobe
-    - cd ../../../../../
-    - cat hello.txt
+    - echo "$SSH_PRIVATE_KEY" > dodokey.pem
+    - chmod 600 dodokey.pem
+    - ssh -i dodokey.pem ubuntu@ec2-35-154-103-10.ap-south-1.compute.amazonaws.com << 'EOF'
+        docker pull hello-world
+      EOF
 
 # remove image older than 48h from runner
 deprecated_image:
