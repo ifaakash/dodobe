@@ -45,7 +45,12 @@ deploy_to_development:
   script:
     - echo "$SSH_PRIVATE_KEY" > dodokey.pem
     - chmod 600 dodokey.pem
-    - ssh -o StrictHostKeyChecking=no -i dodokey.pem ubuntu@ec2-35-154-103-10.ap-south-1.compute.amazonaws.com "docker pull hello-world"
+#    - ssh -o StrictHostKeyChecking=no -i dodokey.pem ubuntu@ec2-35-154-103-10.ap-south-1.compute.amazonaws.com "docker pull hello-world"
+    - ssh -o StrictHostKeyChecking=no -i dodokey.pem ubuntu@ec2-35-154-103-10.ap-south-1.compute.amazonaws.com << 'EOF'
+      docker login -u "$GITLAB_USERNAME" -p "$REGISTRY_PASSWORD" "$GITLAB_REGISTRY"
+      docker pull "$CI_REGISTRY_IMAGE:latest"
+      docker images
+      EOF
 
 # remove image older than 48h from runner
 deprecated_image:
