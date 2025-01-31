@@ -17,7 +17,7 @@ cache:
     - node_modules/
   
 # start the runner for image building foundation
-start_ec2:
+.start_ec2:
   stage: runner_up
   image: python:3.9
   script:
@@ -44,9 +44,9 @@ deploy_to_development:
     - dodo-group-runner
   script:
     - pwd && ls
-    # /builds/dodo1604703/dodobe
-    # - cd ../../../
-    # - cat hello.txt
+    # /home/gitlab-runner/builds/t2__NbzGs/0/dodo1604703/dodobe
+    - cd ../../../../../
+    - cat hello.txt
 
 # remove image older than 48h from runner
 deprecated_image:
