@@ -40,7 +40,7 @@ build-application:
  #   - docker image push $DOCKER_REGISTRY/$IMAGE_NAME:$IMAGE_TAG
 
 # stop the runner after deployment
-.stop_ec2:
+stop_ec2:
   stage: runner_down
   image: python:3.9
   script:
