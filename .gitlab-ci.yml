@@ -4,12 +4,12 @@ stages:
   - test
   - deploy_dev
   - deploy_prd
+  - cleanup
   - runner_down
 
 variables:
   AWS_DEFAULT_REGION: 'ap-south-1' # mumbai region for AWS
   IMAGE_TAG: 'dev-backend'
-  IMAGE_NAME: 'aakashio/dodo'
 
 # cache node modules for faster builds
 cache:
@@ -26,7 +26,7 @@ start_ec2:
     - python start_ec2.py
 
 # Build the image for the application and push to dockerhub
-build-application:
+.build-application:
   stage: build
   tags:
     - dodo-group-runner
@@ -37,10 +37,24 @@ build-application:
     - docker build -t registry.gitlab.com/dodo1604703/dodobe/feat/refactor .
     - docker images
     - docker push registry.gitlab.com/dodo1604703/dodobe/feat/refactor
- #   - docker image push $DOCKER_REGISTRY/$IMAGE_NAME:$IMAGE_TAG
+
+deploy_to_development:
+  stage: deploy_dev
+  script:
+    - pwd && ls
+
+# remove image older than 48h from runner
+deprecated_image:
+  stage: cleanup
+  tags: 
+    - dodo-group-runner
+  script:
+    - docker image prune -a --filter "until=48h" -f
+    - echo "Updated list of image in RUNNER instance"
+    - docker images
 
 # stop the runner after deployment
-stop_ec2:
+.stop_ec2:
   stage: runner_down
   image: python:3.9
   script:
