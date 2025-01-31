@@ -34,9 +34,9 @@ build-application:
     - unset DOCKER_HOST
     - docker login -u $GITLAB_USERNAME -p $REGISTRY_PASSWORD $GITLAB_REGISTRY
   script:
-    - docker build -t registry.gitlab.com/dodo1604703/dodobe/dodo-test-backend .
+    - docker build -t registry.gitlab.com/dodo1604703/dodobe/refactor .
     - docker images
-    - docker push registry.gitlab.com/dodo1604703/dodobe/dodo-test-backend
+    - docker push registry.gitlab.com/dodo1604703/dodobe/refactor
  #   - docker image push $DOCKER_REGISTRY/$IMAGE_NAME:$IMAGE_TAG
 
 # stop the runner after deployment
