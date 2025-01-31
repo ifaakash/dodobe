@@ -40,11 +40,13 @@ start_ec2:
 
 deploy_to_development:
   stage: deploy_dev
+  tags: 
+    - dodo-group-runner
   script:
     - pwd && ls
     # /builds/dodo1604703/dodobe
-    - cd ../../../
-    - echo hello.txt
+    # - cd ../../../
+    # - cat hello.txt
 
 # remove image older than 48h from runner
 deprecated_image:
