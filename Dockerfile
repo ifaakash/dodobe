@@ -1,19 +1,16 @@
-FROM node:18-alpine as builder
+# Base image
+#FROM node:18
 
-WORKDIR /backend
+FROM node:20-slim as build
+WORKDIR /app
+COPY package*.json pnpm-lock.yaml ./
 
-RUN apk add --no-cache --virtual .build-deps python3 make g++ bash
+FROM node:20-slim as pnpm_install
+RUN npm install -g pnpm 
 
-RUN npm install -g pnpm
-
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --shamefully-hoist
-
+FROM node:20-slim as install_dependencies:
+RUN pnpm i
 COPY . .
 
-RUN apk del .build-deps
-
-ENV PORT=3002
-EXPOSE 3002
-
-CMD ["pnpm", "dev"]
+# start in dev environment
+CMD ["pnpm","dev"]
