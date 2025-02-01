@@ -7,7 +7,8 @@ COPY package*.json pnpm-lock.yaml ./
 RUN npm install -g pnpm
 RUN pnpm i
 COPY . .
-ENV PORT=3001 #backedn code has port 3002
+#backedn code has port 3002
+ENV PORT=3001 
 EXPOSE 3001
 
 CMD ["pnpm", "dev"]
