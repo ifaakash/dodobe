@@ -1,21 +1,16 @@
-# alpine image for less size - TESTING
 FROM node:18.20-alpine as builder
 
-# mention workdir inside container
 WORKDIR /app
 
-# copy dependencies file
+RUN rm -rf /app/*
+
 COPY package*.json ./
 
-RUN npm install -g pnpm && pnpm i
+RUN npm install -g pnpm && pnpm install --shamefully-hoist
 
-# copy app code
 COPY . .
 
 ENV PORT=3002
-
-# live on 3001 port - TESTING
 EXPOSE 3002
 
-# run the application on dev dependencies
-CMD ["pnpm","dev"]
+CMD ["pnpm", "dev"]
