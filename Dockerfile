@@ -13,10 +13,10 @@ RUN pnpm i
 # copy app code
 COPY . .
 
-ENV PORT=3001
+ENV PORT=3002
 
 # live on 3001 port - TESTING
-EXPOSE 3001
+EXPOSE 3002
 
 # run the application on dev dependencies
 CMD ["pnpm","dev"]
