@@ -7,8 +7,7 @@ WORKDIR /app
 # copy dependencies file
 COPY package*.json ./
 
-# install package
-RUN pnpm i
+RUN npm install -g pnpm && pnpm i
 
 # copy app code
 COPY . .
