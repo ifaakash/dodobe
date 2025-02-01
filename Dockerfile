@@ -8,7 +8,7 @@ COPY package*.json pnpm-lock.yaml ./
 FROM node:20-slim as pnpm_install
 RUN npm install -g pnpm 
 
-FROM node:20-slim as install_dependencies:
+FROM node:20-slim as finalBuild:
 RUN pnpm i
 COPY . .
 
