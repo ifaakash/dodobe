@@ -43,6 +43,8 @@ stop_existing_infra:
   stage: deploy_dev
   tags:
     - dodo-group-runner
+  # allow job to fail as there might be case that there is no container running, so we proceed with deployment
+  allow_failure: true
   script: 
     - echo "$SSH_PRIVATE_KEY" > dodokey.pem
     - chmod 600 dodokey.pem
