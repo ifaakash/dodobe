@@ -8,7 +8,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # install package
-RUN npm install
+RUN pnpm i
 
 # copy app code
 COPY . .
@@ -19,4 +19,4 @@ ENV PORT=3001
 EXPOSE 3001
 
 # run the application on dev dependencies
-CMD ["npm","run","dev"]
+CMD ["pnpm","dev"]
