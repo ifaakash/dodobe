@@ -8,9 +8,13 @@ RUN npm install -g pnpm
 RUN pnpm i
 COPY . .
 RUN pnpm build
+ENV PORT=3002
+EXPOSE 3002
+
+CMD ["pnpm", "dev"]
 
 ##############
-FROM node:18-slim
+FROM node:18
 WORKDIR /app
 RUN npm install -g pnpm
 COPY --from=build /app/node_modules ./node_modules
