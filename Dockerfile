@@ -5,7 +5,7 @@ FROM node:18.20-alpine as builder
 WORKDIR /app
 
 # copy dependencies file
-COPY package*.json ./
+COPY package*.json pnpm-local.yaml ./
 
 # install package
 RUN pnpm i
