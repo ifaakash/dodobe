@@ -1,10 +1,8 @@
 FROM node:18.20-alpine as builder
 
-WORKDIR /app
+WORKDIR /backend
 
-RUN rm -rf /app/*
-
-COPY package*.json ./
+COPY package.json pnpm-lock.yaml ./
 
 RUN npm install -g pnpm && pnpm install --shamefully-hoist
 
