@@ -73,7 +73,7 @@ deprecated_image:
   script:
     - docker image prune -a --filter "until=48h" -f
 #   - docker rmi -f $(docker images "registry.gitlab.com/dodo1604703/dodobe/feat/refactor:*" -q | grep -v $(docker images "registry.gitlab.com/dodo1604703/dodobe/feat/refactor:latest" -q))
-    - docker images --filter=reference='registry.gitlab.com/dodo1604703/dodobe/feat/refactor:*' --format '{{.ID}} {{.Tag}}' | awk '\$2 != \"latest\" {print \$1}' | xargs -r sudo docker rmi -f && \
+    - docker images --filter=reference='registry.gitlab.com/dodo1604703/dodobe/feat/refactor:*' --format '{{.ID}} {{.Tag}}' | awk '$2 != "latest" {print $1}' | xargs -r sudo docker rmi -f
     - echo "Updated list of image in RUNNER instance"
     - docker images
 
