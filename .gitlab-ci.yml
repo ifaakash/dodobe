@@ -17,7 +17,7 @@ cache:
     - node_modules/
   
 # start the runner for image building foundation
-.start_ec2:
+start_ec2:
   stage: runner_up
   image: python:3.9
   script:
@@ -77,7 +77,7 @@ deprecated_image:
     - docker images
 
 # stop the runner after deployment
-.stop_ec2:
+stop_ec2:
   stage: runner_down
   image: python:3.9
   script:
