@@ -75,7 +75,7 @@ const clientDetailSchema = new Schema<IClientDetail>(
 
 const invoiceSchema = new Schema<IInvoice>(
     {
-        invoiceNumber: { type: String, required: true, unique: true },
+        invoiceNumber: { type: Number, required: true, unique: true },
         userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
         items: [{ type: Schema.Types.ObjectId, ref: "Item" }],
         discount: { type: Number, default: 0 },
