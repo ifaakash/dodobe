@@ -13,9 +13,12 @@ const router: Router = Router();
 const v1Router = Router();
 
 v1Router.use("/auth", authRouter);
-v1Router.use("/dodo-pages", dodoPageRouter);
-v1Router.use("/blocks", blockRouter); // Simple and direct
 
+// Dodo page and its block
+v1Router.use("/dodo-pages", dodoPageRouter);
+v1Router.use("/blocks", blockRouter); 
+
+// For invoice 
 v1Router.use("/recipient", recipientRouter);
 v1Router.use("/client", clientRouter)
 v1Router.use("/bankDetails", bankDetailsRouter)
