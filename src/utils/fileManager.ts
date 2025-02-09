@@ -24,4 +24,25 @@ export class FileManager {
         if (!filePath) return undefined;
         return `${process.env.API_BASE_URL}/${filePath}`;
     }
+
+    public static async fileExists(filePath: string): Promise<boolean> {
+        try {
+            await fs.access(filePath);
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    public static async ensureDirectoryExists(dirPath: string): Promise<void> {
+        try {
+            await fs.access(dirPath);
+        } catch {
+            await fs.mkdir(dirPath, { recursive: true });
+        }
+    }
+
+    public static async createEmptyFile(filePath: string): Promise<void> {
+        await fs.writeFile(filePath, "");
+    }
 }

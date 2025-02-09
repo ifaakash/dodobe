@@ -33,7 +33,7 @@ export interface IDodoPage extends BaseDocument {
     name: string;
     url: string;
     profilePicture?: string;
-    socialLinks: Record<SocialPlatform, string>;
+    socialLinks: Map<SocialPlatform, string>;
     thoughts?: string;
     audioBio?: string;
     blocks: ID[];

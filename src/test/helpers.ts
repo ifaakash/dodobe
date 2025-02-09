@@ -26,3 +26,22 @@ export const createTestDodoPage = async (app: Express, userId: string) => {
 
     return response.body.dodoPage;
 };
+
+export const createTestFile = (filename: string, mimeType: string): Buffer => {
+    return Buffer.from("test file content");
+};
+
+export const attachTestFiles = (request: request.Test) => {
+    const imageBuffer = createTestFile("test-image.jpg", "image/jpeg");
+    const audioBuffer = createTestFile("test-audio.mp3", "audio/mpeg");
+
+    return request
+        .attach("profilePicture", imageBuffer, {
+            filename: "test-image.jpg",
+            contentType: "image/jpeg",
+        })
+        .attach("audioBio", audioBuffer, {
+            filename: "test-audio.mp3",
+            contentType: "audio/mpeg",
+        });
+};

@@ -6,7 +6,8 @@ import {
     CreateDodoPageRequest,
     UpdateDodoPageRequest,
 } from "../../types/dodoPage";
-import { Types } from "mongoose";
+import { SocialPlatform } from "../../types/user";
+import { ID } from "@/types/common";
 
 export class DodoPageController {
     /**
@@ -16,11 +17,10 @@ export class DodoPageController {
         req: Request<{}, {}, CreateDodoPageRequest>,
         res: Response
     ): Promise<void> {
-        const { userId, name, socialLinks, thoughts } = req.body;
+        const { userId, name, thoughts } = req.body;
         const files = req.files as {
             [fieldname: string]: Express.Multer.File[];
         };
-        const uploadedFiles: string[] = [];
 
         try {
             const user = await UserModel.findById(userId);
@@ -39,35 +39,40 @@ export class DodoPageController {
                 });
                 return;
             }
+            console.log("req.body", req.body);
 
+            const socialLinks = DodoPageController.parseSocialLinks(req.body);
+            console.log("socialLinks", socialLinks);
             const dodoPage = await DodoPageModel.create({
                 userId,
                 name,
-                url: await this.generateUniqueUrl(name),
+                url: await DodoPageController.generateUniqueUrl(name),
                 socialLinks,
                 thoughts,
                 profilePicture: files?.profilePicture?.[0]?.path,
                 audioBio: files?.audioBio?.[0]?.path,
             });
 
-            user.dodoPages.push(dodoPage._id as Types.ObjectId);
+            user.dodoPages.push(dodoPage._id as ID);
             await user.save();
+
+            // Convert Map back to object for response
+            const socialLinksObject = Object.fromEntries(dodoPage.socialLinks);
 
             res.status(201).json({
                 success: true,
                 dodoPage: {
-                    id: dodoPage._id,
+                    id: dodoPage._id as ID,
                     name: dodoPage.name,
                     url: dodoPage.url,
                     profilePicture: FileManager.getFileUrl(
                         dodoPage.profilePicture
                     ),
-                    socialLinks: dodoPage.socialLinks,
+                    socialLinks: socialLinksObject,
                     thoughts: dodoPage.thoughts,
                     audioBio: FileManager.getFileUrl(dodoPage.audioBio),
                     blocks: dodoPage.blocks,
                 },
-                message: "DodoPage created successfully",
             });
         } catch (error) {
             // Clean up any uploaded files on error
@@ -86,24 +91,45 @@ export class DodoPageController {
         }
     }
 
-    private static async generateUniqueUrl(baseName: string): Promise<string> {
-        const maxAttempts = 5;
-        let attempts = 0;
+    private static async generateUniqueUrl(name: string): Promise<string> {
+        const baseUrl = name
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-+|-+$/g, "");
 
-        while (attempts < maxAttempts) {
-            const randomId = Math.random().toString(36).substring(2, 8);
-            const url = `${baseName
-                .toLowerCase()
-                .replace(/\s+/g, "-")}-${randomId}`;
+        const randomSuffix = Math.random().toString(36).substring(2, 8);
+        const url = `${baseUrl}-${randomSuffix}`;
 
-            const existingPage = await DodoPageModel.findOne({ url });
-            if (!existingPage) {
-                return url;
-            }
-            attempts++;
+        const existingPage = await DodoPageModel.findOne({ url });
+        if (existingPage) {
+            return this.generateUniqueUrl(name);
         }
 
-        throw new Error("Unable to generate unique URL");
+        return url;
+    }
+
+    private static parseSocialLinks(body: any): Map<SocialPlatform, string> {
+        // If socialLinks is passed directly in the body
+        if (body.socialLinks && typeof body.socialLinks === "object") {
+            return new Map(Object.entries(body.socialLinks)) as Map<
+                SocialPlatform,
+                string
+            >;
+        }
+
+        // If socialLinks is passed as form fields (socialLinks[platform])
+        const socialLinks = new Map<SocialPlatform, string>();
+        Object.entries(body)
+            .filter(([key]) => key.startsWith("socialLinks["))
+            .forEach(([key, value]) => {
+                const platform = key.match(
+                    /socialLinks\[(.*?)\]/
+                )?.[1] as SocialPlatform;
+                if (platform && value) {
+                    socialLinks.set(platform, value as string);
+                }
+            });
+        return socialLinks;
     }
 
     /**
@@ -154,7 +180,7 @@ export class DodoPageController {
         res: Response
     ): Promise<void> {
         const { id } = req.params;
-        const updates = req.body;
+        const { name, thoughts } = req.body;
         const files = req.files as {
             [fieldname: string]: Express.Multer.File[];
         };
@@ -169,30 +195,48 @@ export class DodoPageController {
                 return;
             }
 
-            Object.assign(dodoPage, updates);
+            const newSocialLinks = DodoPageController.parseSocialLinks(
+                req.body
+            );
 
+            // Update fields if provided
+            if (name) dodoPage.name = name;
+            if (thoughts) dodoPage.thoughts = thoughts;
+            if (newSocialLinks.size > 0) {
+                newSocialLinks.forEach((value, key) => {
+                    dodoPage.socialLinks.set(key, value);
+                });
+            }
+
+            // Handle file updates
             if (files?.profilePicture?.[0]) {
+                await FileManager.deleteFile(dodoPage.profilePicture);
                 dodoPage.profilePicture = files.profilePicture[0].path;
             }
             if (files?.audioBio?.[0]) {
+                await FileManager.deleteFile(dodoPage.audioBio);
                 dodoPage.audioBio = files.audioBio[0].path;
             }
 
             await dodoPage.save();
 
+            // Convert Map back to object for response
+            const socialLinksObject = Object.fromEntries(dodoPage.socialLinks);
+
             res.status(200).json({
                 success: true,
                 dodoPage: {
-                    id: dodoPage._id,
+                    id: dodoPage._id as ID,
                     name: dodoPage.name,
                     url: dodoPage.url,
-                    profilePicture: dodoPage.profilePicture,
-                    socialLinks: dodoPage.socialLinks,
+                    profilePicture: FileManager.getFileUrl(
+                        dodoPage.profilePicture
+                    ),
+                    socialLinks: socialLinksObject,
                     thoughts: dodoPage.thoughts,
-                    audioBio: dodoPage.audioBio,
+                    audioBio: FileManager.getFileUrl(dodoPage.audioBio),
                     blocks: dodoPage.blocks,
                 },
-                message: "DodoPage updated successfully",
             });
         } catch (error) {
             logger.error("Error in updateDodoPage:", error);

@@ -1,9 +1,11 @@
 import multer from "multer";
 import path from "path";
+import fs from "fs";
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        let uploadPath = "uploads/";
+        let uploadPath =
+            process.env.NODE_ENV === "test" ? "test-uploads/" : "uploads/";
 
         if (file.fieldname === "profilePicture") {
             uploadPath += "profiles/";
@@ -11,6 +13,8 @@ const storage = multer.diskStorage({
             uploadPath += "audio/";
         }
 
+        // Ensure directory exists
+        fs.mkdirSync(uploadPath, { recursive: true });
         cb(null, uploadPath);
     },
     filename: (req, file, cb) => {

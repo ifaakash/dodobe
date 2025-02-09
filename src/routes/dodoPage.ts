@@ -27,7 +27,7 @@ router.get("/get-by-user/:userId", DodoPageController.getUserDodoPages);
 
 // Update DodoPage
 router.patch(
-    "/update/:pageId",
+    "/update/:id",
     upload.fields([
         { name: "profilePicture", maxCount: 1 },
         { name: "audioBio", maxCount: 1 },

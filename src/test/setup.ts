@@ -3,6 +3,8 @@ import mongoose from "mongoose";
 import { app } from "../app";
 import { blockRouter } from "@/routes/block";
 import { authRouter } from "@/routes/auth";
+import { dodoPageRouter } from "@/routes/dodoPage";
+import fs from "fs/promises";
 
 let mongo: MongoMemoryServer;
 
@@ -14,6 +16,10 @@ beforeAll(async () => {
         // Setup MongoDB Memory Server
         mongo = await MongoMemoryServer.create();
         const mongoUri = mongo.getUri();
+
+        // Create upload directories
+        await fs.mkdir("uploads/profiles", { recursive: true });
+        await fs.mkdir("uploads/audio", { recursive: true });
 
         // Close any existing connections
         await mongoose.disconnect();
@@ -28,6 +34,7 @@ beforeAll(async () => {
         // Register routes for testing
         app.use("/api/v1/block", blockRouter);
         app.use("/api/v1/auth", authRouter);
+        app.use("/api/v1/dodo-page", dodoPageRouter);
     } catch (error) {
         console.error("Error in test setup:", error);
         throw error;
@@ -51,6 +58,9 @@ beforeEach(async () => {
 
 afterAll(async () => {
     try {
+        // Clean up upload directories
+        await fs.rm("uploads", { recursive: true, force: true });
+
         if (mongoose.connection) {
             await mongoose.connection.close();
         }
