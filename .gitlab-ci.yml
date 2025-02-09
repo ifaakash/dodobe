@@ -63,7 +63,7 @@ start_new_infra:
   script:
     - echo "$SSH_PRIVATE_KEY" > dodokey.pem
     - chmod 600 dodokey.pem
-    - ssh -o StrictHostKeyChecking=no -i dodokey.pem ubuntu@ec2-13-202-63-227.ap-south-1.compute.amazonaws.com "sudo docker rmi -f \$(docker images -aq) && sudo docker pull registry.gitlab.com/dodo1604703/dodobe/feat/refactor:latest && sudo docker images && sudo docker run -d -p 3002:3002 --restart=always registry.gitlab.com/dodo1604703/dodobe/feat/refactor:latest"
+    - ssh -o StrictHostKeyChecking=no -i dodokey.pem ubuntu@ec2-13-202-63-227.ap-south-1.compute.amazonaws.com "sudo docker rmi -f \$(sudo docker images -aq) && sudo docker pull registry.gitlab.com/dodo1604703/dodobe/feat/refactor:latest && sudo docker images && sudo docker run -d -p 3002:3002 --restart=always registry.gitlab.com/dodo1604703/dodobe/feat/refactor:latest"
 
 # remove image older than 48h from runner
 deprecated_image:
