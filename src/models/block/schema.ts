@@ -8,6 +8,7 @@ import {
     IProductBlock,
     IBadge,
     IHeadingBlock,
+    ISeparatorBlock,
 } from "../../types/block";
 
 const blockSchema = new Schema<IBlock>(
@@ -98,6 +99,17 @@ const headingBlockSchema = new Schema<IHeadingBlock>(
     }
 );
 
+const separatorBlockSchema = new Schema<ISeparatorBlock>(
+    {
+        blockId: { type: Schema.Types.ObjectId, ref: "Block", required: true },
+        separatorType: { type: String, required: true },
+    },
+    {
+        timestamps: true,
+    }
+);
+
+
 export {
     blockSchema,
     badgeSchema,
@@ -105,4 +117,5 @@ export {
     pollBlockSchema,
     productBlockSchema,
     headingBlockSchema,
+    separatorBlockSchema,
 };

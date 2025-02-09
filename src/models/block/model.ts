@@ -6,6 +6,7 @@ import {
     IProductBlock,
     IBadge,
     IHeadingBlock,
+    ISeparatorBlock,
 } from "../../types/block";
 import {
     blockSchema,
@@ -14,10 +15,13 @@ import {
     pollBlockSchema,
     productBlockSchema,
     headingBlockSchema,
+    separatorBlockSchema,
 } from "./schema";
 
 const BlockModel = model<IBlock>("Block", blockSchema);
 const BadgeModel = model<IBadge>("Badge", badgeSchema);
+
+
 const LinkBlockModel = model<ILinkBlock>("LinkBlock", linkBlockSchema);
 const PollBlockModel = model<IPollBlock>("PollBlock", pollBlockSchema);
 const ProductBlockModel = model<IProductBlock>(
@@ -28,6 +32,10 @@ const HeadingBlockModel = model<IHeadingBlock>(
     "HeadingBlock",
     headingBlockSchema
 );
+const SeparatorBlockModel = model<ISeparatorBlock>(
+    "SeparatorBlock",
+    separatorBlockSchema
+);
 
 export {
     BlockModel,
@@ -36,4 +44,5 @@ export {
     PollBlockModel,
     ProductBlockModel,
     HeadingBlockModel,
+    SeparatorBlockModel
 };

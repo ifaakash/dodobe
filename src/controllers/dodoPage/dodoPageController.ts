@@ -116,7 +116,7 @@ export class DodoPageController {
         const { url } = req.params;
 
         try {
-            const dodoPage = await DodoPageModel.findOne({ url });
+            const dodoPage = await DodoPageModel.findOne({ url }).populate("blocks");
             if (!dodoPage) {
                 res.status(404).json({
                     success: false,
@@ -131,9 +131,10 @@ export class DodoPageController {
                     id: dodoPage._id,
                     name: dodoPage.name,
                     url: dodoPage.url,
+                    profilePicture: FileManager.getFileUrl(dodoPage.profilePicture),
                     socialLinks: dodoPage.socialLinks,
                     thoughts: dodoPage.thoughts,
-                    audioBio: dodoPage.audioBio,
+                    audioBio: FileManager.getFileUrl(dodoPage.audioBio),
                     blocks: dodoPage.blocks,
                 },
             });

@@ -5,15 +5,21 @@ export enum BlockType {
     LINK = "LINK",
     POLL = "POLL",
     PRODUCT = "PRODUCT",
-    SEPARATOR = "Separator",
+    SEPARATOR = "SEPARATOR",
     HEADING = "HEADING",
+}
+
+export enum SeparatorType {
+    DASHED_LINE = "dashed-line",
+    SOLID_LINE = "solid-line",
+    OR = "or",
 }
 
 export enum BlockCardSize {
     NA = "NA",
-    SMALL = "Small",
-    MEDIUM = "Medium",
-    LARGE = "Large",
+    SMALL = "SMALL",
+    MEDIUM = "MEDIUM",
+    LARGE = "LARGE",
 }
 
 export interface IBlock extends BaseDocument {
@@ -57,6 +63,11 @@ export interface IHeadingBlock extends BaseDocument {
     title: string;
 }
 
+export interface ISeparatorBlock extends BaseDocument {
+    blockId: ID;
+    separatorType: SeparatorType;
+}
+
 interface Badge {
     text: string;
     backgroundColor: string;
@@ -74,6 +85,7 @@ export interface CreateBlockRequest {
     blockType: BlockType;
     blockCardSize: BlockCardSize;
     blockData: BlockData;
+    userId: string;
 }
 
 export interface UpdateBlockRequest {
