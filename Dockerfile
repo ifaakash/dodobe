@@ -1,14 +1,20 @@
 # Base image
-#FROM node:18
-
-FROM node:18 as build
+FROM node:18-slim
 WORKDIR /app
-COPY package*.json pnpm-lock.yaml ./
-RUN npm install -g pnpm
-RUN pnpm i
-COPY . .
-#backedn code has port 3002
-ENV PORT=3001 
-EXPOSE 3001
 
+# install the required build packages that are not in slim image and pnpm
+RUN apt-get update && apt-get install -y curl git build-essential python3
+RUN npm install -g pnpm
+
+# Copy and install dependencies
+COPY package*.json pnpm-lock.yaml ./
+RUN pnpm i
+
+# copy the rest application code
+COPY . .
+
+#backedn code has port 3002
+EXPOSE 3002
+
+# Run the application in DEV mode
 CMD ["pnpm", "dev"]
