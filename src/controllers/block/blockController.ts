@@ -17,6 +17,7 @@ import {
     BlockType,
 } from "../../types/block";
 import mongoose, { Types } from "mongoose";
+import { uploadToS3 } from "../../middleware/fileUpload";
 
 export class BlockController {
     /**
@@ -110,6 +111,20 @@ export class BlockController {
             dodoPage.blocks.push(block._id as Types.ObjectId);
             await dodoPage.save();
 
+            // Upload image to S3 if present
+            let imageUrl;
+            if (files?.linkDisplayPicture) {
+                imageUrl = await uploadToS3(
+                    files.linkDisplayPicture[0],
+                    "block-images"
+                );
+            } else if (files?.productImage) {
+                imageUrl = await uploadToS3(
+                    files.productImage[0],
+                    "block-images"
+                );
+            }
+
             res.status(201).json({
                 success: true,
                 block: {
@@ -119,6 +134,7 @@ export class BlockController {
                     blockPositionalIndex: block.blockPositionalIndex,
                     isActive: block.isActive,
                     blockData: specificBlockData,
+                    imageUrl: FileManager.getFileUrl(imageUrl),
                 },
                 message: "Block created successfully",
             });

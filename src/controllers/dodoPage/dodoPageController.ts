@@ -8,7 +8,7 @@ import {
 } from "../../types/dodoPage";
 import { SocialPlatform } from "../../types/user";
 import { ID } from "@/types/common";
-import { uploadToS3 } from "../../middleware/fileUpload";
+import { uploadToS3, deleteS3File } from "../../middleware/fileUpload";
 
 export class DodoPageController {
     /**
@@ -226,12 +226,20 @@ export class DodoPageController {
 
             // Handle file updates
             if (files?.profilePicture?.[0]) {
-                await FileManager.deleteFile(dodoPage.profilePicture);
-                dodoPage.profilePicture = files.profilePicture[0].path;
+                // Delete old file from S3
+                await deleteS3File(dodoPage.profilePicture);
+                // Upload new file to S3
+                dodoPage.profilePicture = await uploadToS3(
+                    files.profilePicture[0],
+                    "dodo-profiles"
+                );
             }
             if (files?.audioBio?.[0]) {
-                await FileManager.deleteFile(dodoPage.audioBio);
-                dodoPage.audioBio = files.audioBio[0].path;
+                await deleteS3File(dodoPage.audioBio);
+                dodoPage.audioBio = await uploadToS3(
+                    files.audioBio[0],
+                    "dodo-audio"
+                );
             }
 
             await dodoPage.save();
@@ -311,9 +319,13 @@ export class DodoPageController {
                 return;
             }
 
-            // Delete associated files
-            await FileManager.deleteFile(dodoPage.profilePicture);
-            await FileManager.deleteFile(dodoPage.audioBio);
+            // Delete associated files if they exist
+            if (dodoPage.profilePicture) {
+                await deleteS3File(dodoPage.profilePicture);
+            }
+            if (dodoPage.audioBio) {
+                await deleteS3File(dodoPage.audioBio);
+            }
 
             // Remove reference from user
             await UserModel.updateOne(

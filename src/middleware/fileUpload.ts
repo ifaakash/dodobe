@@ -1,8 +1,11 @@
 import multer from "multer";
-import path from "path";
-import fs from "fs";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import {
+    S3Client,
+    PutObjectCommand,
+    DeleteObjectCommand,
+} from "@aws-sdk/client-s3";
 import dotenv from "dotenv";
+import { logger } from "../utils/logger";
 
 dotenv.config();
 
@@ -35,7 +38,7 @@ export const upload = multer({
 
 export const uploadToS3 = async (
     file: Express.Multer.File,
-    folder: "dodo-profiles" | "dodo-audio"
+    folder: "dodo-profiles" | "dodo-audio" | "block-images"
 ) => {
     const params = {
         Bucket: process.env.S3_BUCKET_NAME!,
@@ -47,4 +50,26 @@ export const uploadToS3 = async (
 
     await s3.send(new PutObjectCommand(params));
     return `https://${params.Bucket}.s3.${process.env.AWS_REGION}.amazonaws.com/${params.Key}`;
+};
+
+export const deleteS3File = async (url?: string): Promise<void> => {
+    if (!url) return;
+
+    try {
+        // Parse S3 URL format: https://{bucket}.s3.{region}.amazonaws.com/{key}
+        const urlPattern = /https:\/\/(.+?)\.s3\.(.+?)\.amazonaws\.com\/(.*)/;
+        const matches = url.match(urlPattern);
+
+        if (!matches || matches.length < 4) {
+            throw new Error(`Invalid S3 URL format: ${url}`);
+        }
+
+        const Bucket = matches[1];
+        const Key = matches[3];
+
+        await s3.send(new DeleteObjectCommand({ Bucket, Key }));
+    } catch (error) {
+        logger.error(`Error deleting S3 file ${url}:`, error);
+        throw error; // Re-throw to handle in controllers
+    }
 };
