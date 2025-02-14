@@ -1,57 +1,50 @@
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import dotenv from "dotenv";
 
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        let uploadPath =
-            process.env.NODE_ENV === "test" ? "test-uploads/" : "uploads/";
+dotenv.config();
 
-        if (file.fieldname === "profilePicture") {
-            uploadPath += "profiles/";
-        } else if (file.fieldname === "audioBio") {
-            uploadPath += "audio/";
-        }
-
-        // Ensure directory exists
-        fs.mkdirSync(uploadPath, { recursive: true });
-        cb(null, uploadPath);
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-        cb(
-            null,
-            file.fieldname +
-                "-" +
-                uniqueSuffix +
-                path.extname(file.originalname)
-        );
+const s3 = new S3Client({
+    region: process.env.AWS_REGION!,
+    credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
     },
 });
 
-const fileFilter = (
-    req: Express.Request,
-    file: Express.Multer.File,
-    cb: multer.FileFilterCallback
-) => {
-    if (file.fieldname === "profilePicture") {
-        if (!file.mimetype.startsWith("image/")) {
-            cb(null, false);
-            return;
-        }
-    } else if (file.fieldname === "audioBio") {
-        if (!file.mimetype.startsWith("audio/")) {
-            cb(null, false);
-            return;
-        }
-    }
-    cb(null, true);
-};
+const storage = multer.memoryStorage();
 
 export const upload = multer({
     storage: storage,
-    fileFilter: fileFilter,
+    fileFilter: (req, file, cb) => {
+        if (
+            file.mimetype.startsWith("image/") ||
+            file.mimetype.startsWith("audio/")
+        ) {
+            cb(null, true);
+        } else {
+            cb(new Error("Only image and audio files are allowed!"));
+        }
+    },
     limits: {
-        fileSize: 5 * 1024 * 1024, // 5MB limit
+        fileSize: 15 * 1024 * 1024, // 15MB (audio files need more space)
     },
 });
+
+export const uploadToS3 = async (
+    file: Express.Multer.File,
+    folder: "dodo-profiles" | "dodo-audio"
+) => {
+    const params = {
+        Bucket: process.env.S3_BUCKET_NAME!,
+        Key: `${folder}/${Date.now()}-${file.originalname}`,
+        Body: file.buffer,
+        ContentType: file.mimetype,
+        ACL: "public-read" as const,
+    };
+
+    await s3.send(new PutObjectCommand(params));
+    return `https://${params.Bucket}.s3.${process.env.AWS_REGION}.amazonaws.com/${params.Key}`;
+};

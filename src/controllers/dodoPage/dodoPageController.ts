@@ -8,6 +8,7 @@ import {
 } from "../../types/dodoPage";
 import { SocialPlatform } from "../../types/user";
 import { ID } from "@/types/common";
+import { uploadToS3 } from "../../middleware/fileUpload";
 
 export class DodoPageController {
     /**
@@ -18,6 +19,13 @@ export class DodoPageController {
         res: Response
     ): Promise<void> {
         const { userId, name, thoughts } = req.body;
+        if (!userId || !name) {
+            res.status(400).json({
+                success: false,
+                message: "userId and name are required",
+            });
+            return;
+        }
         const files = req.files as {
             [fieldname: string]: Express.Multer.File[];
         };
@@ -43,14 +51,24 @@ export class DodoPageController {
 
             const socialLinks = DodoPageController.parseSocialLinks(req.body);
             console.log("socialLinks", socialLinks);
+
+            // Upload files to S3
+            const profilePictureUrl = files?.profilePicture?.[0]
+                ? await uploadToS3(files.profilePicture[0], "dodo-profiles")
+                : undefined;
+
+            const audioBioUrl = files?.audioBio?.[0]
+                ? await uploadToS3(files.audioBio[0], "dodo-audio")
+                : undefined;
+
             const dodoPage = await DodoPageModel.create({
                 userId,
                 name,
                 url: await DodoPageController.generateUniqueUrl(name),
                 socialLinks,
                 thoughts,
-                profilePicture: files?.profilePicture?.[0]?.path,
-                audioBio: files?.audioBio?.[0]?.path,
+                profilePicture: profilePictureUrl,
+                audioBio: audioBioUrl,
             });
 
             user.dodoPages.push(dodoPage._id as ID);
@@ -65,12 +83,10 @@ export class DodoPageController {
                     id: dodoPage._id as ID,
                     name: dodoPage.name,
                     url: dodoPage.url,
-                    profilePicture: FileManager.getFileUrl(
-                        dodoPage.profilePicture
-                    ),
+                    profilePicture: FileManager.getFileUrl(profilePictureUrl),
                     socialLinks: socialLinksObject,
                     thoughts: dodoPage.thoughts,
-                    audioBio: FileManager.getFileUrl(dodoPage.audioBio),
+                    audioBio: FileManager.getFileUrl(audioBioUrl),
                     blocks: dodoPage.blocks,
                 },
             });

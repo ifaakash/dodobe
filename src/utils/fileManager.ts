@@ -20,9 +20,8 @@ export class FileManager {
         await this.deleteFile(oldFilePath);
     }
 
-    static getFileUrl(filePath: string | undefined): string | undefined {
-        if (!filePath) return undefined;
-        return `${process.env.API_BASE_URL}/${filePath}`;
+    static getFileUrl(s3Url: string | undefined): string | undefined {
+        return s3Url; // Directly return S3 URL
     }
 
     public static async fileExists(filePath: string): Promise<boolean> {

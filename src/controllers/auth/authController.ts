@@ -38,7 +38,7 @@ export class AuthController {
                     message: "User already exists",
                     userId: existingUser._id as Types.ObjectId,
                     isNewUser: false,
-                    token
+                    token,
                 });
                 return;
             }
@@ -63,7 +63,7 @@ export class AuthController {
                 message: "Internal server error",
                 userId: new Types.ObjectId(),
                 isNewUser: false,
-                token: ''
+                token: "",
             });
         }
     }
@@ -214,4 +214,11 @@ export class AuthController {
             });
         }
     }
+
+    // public static async updateUserDetails(
+    //     req: Request<UpdateUserDetailsRequest>,
+    //     res: Response
+    // ): Promise<void> {
+    //     const { userId, name, interests } = req.body;
+    // }
 }

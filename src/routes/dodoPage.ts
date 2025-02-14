@@ -20,7 +20,7 @@ router.post(
 router.get("/get-by-url/:url", DodoPageController.getDodoPageByUrl);
 
 // Get DodoPage by ID
-router.get("/get/:pageId", DodoPageController.getDodoPageById);
+router.get("/get-by-id/:pageId", DodoPageController.getDodoPageById);
 
 // Get all DodoPages for a user
 router.get("/get-by-user/:userId", DodoPageController.getUserDodoPages);
