@@ -14,7 +14,7 @@ RUN pnpm i
 COPY . .
 
 #backedn code has port 3002
-EXPOSE 3002
+EXPOSE 3001
 
 # Run the application in DEV mode
 CMD ["pnpm", "dev"]
