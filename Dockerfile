@@ -1,22 +1,20 @@
-# alpine image for less size - TESTING
-FROM node:18.20-alpine as builder
-
-# mention workdir inside container
+# Base image
+FROM node:18-slim
 WORKDIR /app
 
-# copy dependencies file
-COPY package*.json ./
+# install the required build packages that are not in slim image and pnpm
+RUN apt-get update && apt-get install -y curl git build-essential python3
+RUN npm install -g pnpm
 
-# install package
-RUN npm install
+# Copy and install dependencies
+COPY package*.json pnpm-lock.yaml ./
+RUN pnpm i
 
-# copy app code
+# copy the rest application code
 COPY . .
 
-ENV PORT=3001
-
-# live on 3001 port - TESTING
+#backedn code has port 3002
 EXPOSE 3001
 
-# run the application on dev dependencies
-CMD ["npm","run","dev"]
+# Run the application in DEV mode
+CMD ["pnpm", "dev"]
