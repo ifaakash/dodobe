@@ -29,7 +29,7 @@ v1Router.use("/invoice", invoiceRouter)
 v1Router.get("/health", (req, res) => {
     res.status(200).json({
         success: true,
-        message: "Server is running",
+        message: `Server is running on port ${process.env.PORT}`,
     });
 });
 
