@@ -55,6 +55,7 @@ const linkBlockSchema = new Schema<ILinkBlock>(
         linkDisplayPicture: String,
         url: { type: String, required: true },
         badge: { type: Schema.Types.ObjectId, ref: "Badge" },
+        blockCardSize: { type: String, required: true },
     },
     {
         timestamps: true,

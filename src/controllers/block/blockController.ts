@@ -75,12 +75,14 @@ export class BlockController {
         case BlockType.LINK:
           if ("badge" in blockData) {
             const badge = await BadgeModel.create(blockData.badge);
+            await LinkBlockModel.create({
             specificBlockData = await LinkBlockModel.create({
               ...blockData,
               blockId: block._id,
               badge: badge._id,
               blockCardSize: block.blockCardSize,
               linkDisplayPicture: files?.linkDisplayPicture?.[0]?.path,
+              blockCardSize: blockCardSize,
             });
           } else {
             specificBlockData = await LinkBlockModel.create({
@@ -88,6 +90,7 @@ export class BlockController {
               blockId: block._id,
               blockCardSize: block.blockCardSize,
               linkDisplayPicture: files?.linkDisplayPicture?.[0]?.path,
+              blockCardSize: blockCardSize,
             });
           }
           break;
@@ -174,6 +177,7 @@ export class BlockController {
       res.status(500).json({
         success: false,
         message: "Internal server error",
+        error: error,
       });
     }
   }
@@ -192,6 +196,19 @@ export class BlockController {
     };
 
     try {
+      const dodoPage = await DodoPageModel.findOne({
+        url: updates?.dodopageUrl,
+        userId: userId,
+      });
+
+      if (!dodoPage) {
+        res.status(404).json({
+          success: false,
+          message: "DodoPage not found or unauthorized access",
+        });
+        return;
+      }
+
       const block = await BlockModel.findById(blockId);
 
       if (!block) {
@@ -441,6 +458,7 @@ export class BlockController {
   ): Promise<void> {
     const { blockId, userId } = req.body;
     const session = await mongoose.startSession();
+    
 
     try {
       await session.withTransaction(async () => {

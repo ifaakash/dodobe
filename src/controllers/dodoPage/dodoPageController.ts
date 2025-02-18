@@ -244,6 +244,7 @@ export class DodoPageController {
   ): Promise<void> {
     const { id, userId } = req.body;
 
+    
     const user = await UserModel.findById(userId);
     if (!user) {
       res.status(404).json({
@@ -301,6 +302,7 @@ export class DodoPageController {
         });
       }
 
+      console.log("Files", files);
       // Handle file updates
       if (files?.profilePicture?.[0]) {
         console.log('PROFILE PICTURE', files.profilePicture[0])

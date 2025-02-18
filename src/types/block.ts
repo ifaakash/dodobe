@@ -36,11 +36,13 @@ export interface ILinkBlock extends BaseDocument {
     linkDisplayPicture?: string;
     url: string;
     badge?: ID;
+    blockCardSize: BlockCardSize;
 }
 
 export interface IBadge extends BaseDocument {
     text: string;
     color: string;
+    backgroundColor: string;
     backgroundColor: string;
 }
 
@@ -69,10 +71,10 @@ export interface ISeparatorBlock extends BaseDocument {
     separatorType: SeparatorType;
 }
 
-interface Badge {
+export interface Badge {
     text: string;
     backgroundColor: string;
-    textColor: string;
+    color: string;
 }
 
 export type BlockData =
@@ -92,10 +94,13 @@ export interface CreateBlockRequest {
 export interface UpdateBlockRequest {
     blockId: string;
     userId: string;
+    blockId: string;
+    userId: string;
     blockData?: Partial<BlockData>;
     blockPositionalIndex?: number;
     blockCardSize?: BlockCardSize;
     isActive?: boolean;
+    dodopageUrl?: string;
 }
 
 export interface ReorderBlocksRequest {

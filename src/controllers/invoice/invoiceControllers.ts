@@ -69,6 +69,8 @@ export class InvoiceController {
       });
       let nextNumber = lastInvoice ? lastInvoice.invoiceNumber + 1 : 1;
 
+      console.log('ext', nextNumber)
+
       // Create and save the invoice
       const invoice: IInvoice = new InvoiceModel({
         ...req.body,
