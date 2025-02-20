@@ -5,15 +5,21 @@ export enum BlockType {
     LINK = "LINK",
     POLL = "POLL",
     PRODUCT = "PRODUCT",
-    SEPARATOR = "Separator",
+    SEPARATOR = "SEPARATOR",
     HEADING = "HEADING",
+}
+
+export enum SeparatorType {
+    DASHED_LINE = "dashed-line",
+    SOLID_LINE = "solid-line",
+    OR = "or",
 }
 
 export enum BlockCardSize {
     NA = "NA",
-    SMALL = "Small",
-    MEDIUM = "Medium",
-    LARGE = "Large",
+    SMALL = "SMALL",
+    MEDIUM = "MEDIUM",
+    LARGE = "LARGE",
 }
 
 export interface IBlock extends BaseDocument {
@@ -35,6 +41,7 @@ export interface ILinkBlock extends BaseDocument {
 export interface IBadge extends BaseDocument {
     text: string;
     color: string;
+    backgroundColor: string;
 }
 
 export interface IPollBlock extends BaseDocument {
@@ -42,7 +49,7 @@ export interface IPollBlock extends BaseDocument {
     question: string;
     options: string[];
     isMultipleOptionsAllowed: boolean;
-    optionCounts: Record<string, number>;
+    optionCounts: { [key: string]: number };
 }
 
 export interface IProductBlock extends BaseDocument {
@@ -55,6 +62,11 @@ export interface IProductBlock extends BaseDocument {
 export interface IHeadingBlock extends BaseDocument {
     blockId: ID;
     title: string;
+}
+
+export interface ISeparatorBlock extends BaseDocument {
+    blockId: ID;
+    separatorType: SeparatorType;
 }
 
 interface Badge {
@@ -74,9 +86,12 @@ export interface CreateBlockRequest {
     blockType: BlockType;
     blockCardSize: BlockCardSize;
     blockData: BlockData;
+    userId: string;
 }
 
 export interface UpdateBlockRequest {
+    blockId: string;
+    userId: string;
     blockData?: Partial<BlockData>;
     blockPositionalIndex?: number;
     blockCardSize?: BlockCardSize;

@@ -1,4 +1,6 @@
 import { BaseDocument, ID } from "./common";
+import { IInvoice } from "./invoice";
+import { IBankDetail, IClientDetail, IRecipientDetail } from "./invoice";
 
 export enum SocialPlatform {
     LINKEDIN = "linkedin",
@@ -17,10 +19,10 @@ export interface IUser extends BaseDocument {
     otplessId?: string;
     dodoPages: ID[];
     interestCategories: ID[];
-    bankDetails: ID[];
-    invoices: ID[];
-    clientDetails: ID[];
-    recipientDetails: ID[];
+    bankDetails: IBankDetail[];
+    invoices: IInvoice[];
+    clientDetails: IClientDetail[];
+    recipientDetails: IRecipientDetail[];
 }
 
 export interface IUserInterestCategory extends BaseDocument {

@@ -19,7 +19,7 @@ export class BankDetailsController {
 
       const bankDetails:IBankDetail = await BankDetailModel.create(req.body);
 
-      user.bankDetails.push(bankDetails._id);
+      user.bankDetails.push(bankDetails._id as any);
       await user.save();
       await bankDetails.save();
 

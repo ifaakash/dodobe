@@ -40,6 +40,7 @@ export const uploadToS3 = async (
     file: Express.Multer.File,
     folder: "dodo-profiles" | "dodo-audio" | "block-images"
 ) => {
+    logger.info('Attempting S3 upload:', { filename: file.originalname, folder });
     const params = {
         Bucket: process.env.S3_BUCKET_NAME!,
         Key: `${folder}/${Date.now()}-${file.originalname}`,
@@ -49,12 +50,14 @@ export const uploadToS3 = async (
     };
 
     await s3.send(new PutObjectCommand(params));
-    return `https://${params.Bucket}.s3.${process.env.AWS_REGION}.amazonaws.com/${params.Key}`;
+    const fileUrl = `https://${params.Bucket}.s3.${process.env.AWS_REGION}.amazonaws.com/${params.Key}`;
+    return fileUrl;
 };
 
 export const deleteS3File = async (url?: string): Promise<void> => {
     if (!url) return;
 
+    logger.info('Attempting to delete S3 file:', { url });
     try {
         // Parse S3 URL format: https://{bucket}.s3.{region}.amazonaws.com/{key}
         const urlPattern = /https:\/\/(.+?)\.s3\.(.+?)\.amazonaws\.com\/(.*)/;

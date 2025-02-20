@@ -9,7 +9,8 @@ import {
   GetInvoiceStatsResponse,
   IInvoice,
   IItem,
-} from "@/types/invoice";
+  InvoiceStatus,
+} from "../../types/invoice";
 import { InvoiceModel } from "../../models/invoice/model";
 import { UserModel } from "../../models/user/model";
 import { RecipientDetailModel } from "../../models/invoice/model";
@@ -76,7 +77,6 @@ export class InvoiceController {
         subHeading: "",
       });
       await invoice.save();
-      
 
       const itemsArray: IItem[] = await Promise.all(
         items.map(async (item: any) => {
@@ -93,7 +93,7 @@ export class InvoiceController {
       await invoice.save();
 
       // Associate invoice with the user
-      user.invoices.push(invoice._id);
+      user.invoices.push(invoice._id as any);
       await user.save();
 
       return res.status(201).json({
@@ -102,7 +102,6 @@ export class InvoiceController {
         data: invoice,
       });
     } catch (error) {
-      console.error(error);
       return res.status(500).json({
         success: false,
         msg: (error as Error).message,
@@ -174,7 +173,6 @@ export class InvoiceController {
       }
 
       const currentInvoice = await InvoiceModel.findById(invoiceId);
-
       // Check if invoice exists
       if (!currentInvoice) {
         return res.status(404).json({
@@ -211,7 +209,7 @@ export class InvoiceController {
 
       if (!invoice) {
         return res.status(404).json({ message: "Invoice not found" });
-      } 
+      }
 
       // Calculate the subtotal
       const subTotal = invoice.items.reduce((total, item) => {
@@ -361,7 +359,16 @@ export class InvoiceController {
       for (const invoice of paidInvoices) {
         const items = await ItemModel.find({ _id: { $in: invoice.items } });
         paidAmount += items.reduce((total, item) => {
-          return total + (item.quantity * item.price);
+          return total + item.quantity * item.price;
+        }, 0);
+      }
+
+      // Calculate total amount for all invoices
+      let totalAmount = 0;
+      for (const invoice of invoices) {
+        const items = await ItemModel.find({ _id: { $in: invoice.items } });
+        totalAmount += items.reduce((total, item) => {
+          return total + item.quantity * item.price;
         }, 0);
       }
 
@@ -377,6 +384,8 @@ export class InvoiceController {
           outStandingAmount,
           pendingAmount,
           paidAmount,
+          totalAmount,
+          unpaidAmount: totalAmount - paidAmount,
         },
         msg: "Invoice stats fetched successfully",
       });
@@ -385,6 +394,40 @@ export class InvoiceController {
       res.status(500).json({
         success: false,
         msg: "Internal server error",
+      });
+    }
+  }
+
+  public static async markAsPaid(
+    req: Request<{}, {}, { invoiceId: string; userId: string }>,
+    res: Response<{ success: boolean; msg: string }>
+  ) {
+    try {
+      const { invoiceId, userId } = req.body;
+
+      const invoice = await InvoiceModel.findOne({
+        _id: invoiceId,
+        userId: userId,
+      });
+
+      if (!invoice) {
+        return res.status(404).json({
+          success: false,
+          msg: "Invoice not found",
+        });
+      }
+
+      invoice.status = InvoiceStatus.PAID;
+      await invoice.save();
+
+      return res.status(200).json({
+        success: true,
+        msg: "Invoice marked as paid",
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        msg: (error as Error).message,
       });
     }
   }

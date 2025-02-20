@@ -3,6 +3,10 @@ import {
     UserModel,
     DodoPageModel,
     UserInterestCategoryModel,
+    BankDetailModel,
+    InvoiceModel,
+    ClientDetailModel,
+    RecipientDetailModel,
 } from "../../models";
 import { logger } from "../../utils/logger";
 import {
@@ -174,6 +178,11 @@ export class AuthController {
                     select: "category",
                 });
 
+            const bankDetails = await BankDetailModel.find({ userId });
+            const invoices = await InvoiceModel.find({ userId });
+            const clientDetails = await ClientDetailModel.find({ userId });
+            const recipientDetails = await RecipientDetailModel.find({ userId });
+
             if (!user) {
                 res.status(404).json({
                     success: false,
@@ -200,10 +209,10 @@ export class AuthController {
                             ? FileManager.getFileUrl(page.profilePicture)
                             : "",
                     })) as any,
-                    bankDetails: user.bankDetails,
-                    invoices: user.invoices,
-                    clientDetails: user.clientDetails,
-                    recipientDetails: user.recipientDetails,
+                    bankDetails: bankDetails as any,
+                    invoices: invoices as any,
+                    clientDetails: clientDetails as any,
+                    recipientDetails: recipientDetails as any,
                 },
             });
         } catch (error) {
@@ -215,10 +224,4 @@ export class AuthController {
         }
     }
 
-    // public static async updateUserDetails(
-    //     req: Request<UpdateUserDetailsRequest>,
-    //     res: Response
-    // ): Promise<void> {
-    //     const { userId, name, interests } = req.body;
-    // }
 }
