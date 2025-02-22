@@ -6,6 +6,7 @@ import { invoiceRouter } from "./invoiceRoutes/invoice";
 import { bankDetailsRouter } from "./invoiceRoutes/bankDetails";
 import { clientRouter } from "./invoiceRoutes/client";
 import { recipientRouter } from "./invoiceRoutes/recipient";
+import { dodoCoinRouter } from "./dodoCoin";
 
 const router: Router = Router();
 
@@ -16,14 +17,15 @@ v1Router.use("/auth", authRouter);
 
 // Dodo page and its block
 v1Router.use("/dodo-pages", dodoPageRouter);
-v1Router.use("/blocks", blockRouter); 
+v1Router.use("/blocks", blockRouter);
 
-// For invoice 
+// For invoice
 v1Router.use("/recipient", recipientRouter);
-v1Router.use("/client", clientRouter)
-v1Router.use("/bankDetails", bankDetailsRouter)
+v1Router.use("/client", clientRouter);
+v1Router.use("/bankDetails", bankDetailsRouter);
 
-v1Router.use("/invoice", invoiceRouter)
+v1Router.use("/invoice", invoiceRouter);
+v1Router.use("/coins", dodoCoinRouter);
 
 // Health check
 v1Router.get("/health", (req, res) => {

@@ -21,6 +21,8 @@ export interface IUser extends BaseDocument {
     invoices: ID[];
     clientDetails: ID[];
     recipientDetails: ID[];
+    dodoCoins: number;
+    coinTransactions: ID[]; // Reference to coin transactions
 }
 
 export interface IUserInterestCategory extends BaseDocument {
