@@ -127,14 +127,53 @@ describe("DodoCoinController", () => {
             user!.dodoCoins = 20;
             await user!.save();
 
-            const response = await request(app).get(
+            // Test coins endpoint
+            const coinsResponse = await request(app).get(
                 `/api/v1/coins/user/${userId}`
             );
 
-            expect(response.status).toBe(200);
-            expect(response.body.success).toBe(true);
-            expect(response.body.data.currentBalance).toBe(20);
-            expect(response.body.data.transactions).toHaveLength(2);
+            expect(coinsResponse.status).toBe(200);
+            expect(coinsResponse.body.success).toBe(true);
+            expect(coinsResponse.body.data.currentBalance).toBe(20);
+            expect(coinsResponse.body.data.transactions).toHaveLength(2);
+
+            // Test user endpoint to verify coin data
+            const userResponse = await request(app).get(
+                `/api/v1/auth/user/${userId}`
+            );
+
+            expect(userResponse.status).toBe(200);
+            expect(userResponse.body.success).toBe(true);
+            expect(userResponse.body.user.dodoCoins).toBe(20);
+            expect(userResponse.body.user.coinTransactions).toHaveLength(2);
+
+            // Verify transaction details in user response
+            const transactions = userResponse.body.user.coinTransactions;
+            expect(transactions).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        amount: 50,
+                        transactionType: TransactionType.EARNED,
+                        description: "First earn",
+                    }),
+                    expect.objectContaining({
+                        amount: 30,
+                        transactionType: TransactionType.SPENT,
+                        description: "First spend",
+                    }),
+                ])
+            );
+        });
+
+        it("should return 0 coins and empty transactions for new user", async () => {
+            const userResponse = await request(app).get(
+                `/api/v1/auth/user/${userId}`
+            );
+
+            expect(userResponse.status).toBe(200);
+            expect(userResponse.body.success).toBe(true);
+            expect(userResponse.body.user.dodoCoins).toBe(0);
+            expect(userResponse.body.user.coinTransactions).toEqual([]);
         });
 
         it("should return 404 for non-existent user", async () => {
