@@ -21,7 +21,7 @@ import {
   IProductBlock,
 } from "../../types/block";
 import mongoose, { Types } from "mongoose";
-import { uploadToS3 } from "../../middleware/fileUpload";
+import { deleteS3File, uploadToS3 } from "../../middleware/fileUpload";
 
 export class BlockController {
   /**
@@ -192,7 +192,6 @@ export class BlockController {
     };
 
     try {
-
       const block = await BlockModel.findById(blockId);
 
       if (!block) {
@@ -216,48 +215,59 @@ export class BlockController {
         return;
       }
 
-
       if (updates.blockCardSize !== undefined) {
+        console.log("updates.blockCardSize", updates.blockCardSize);
         block.blockCardSize = updates.blockCardSize;
       }
 
       if (updates.isActive !== undefined) {
+        console.log("updates.isActive", updates.isActive);
         block.isActive = updates.isActive;
       }
 
       await block.save();
+      let specificBlockData;
 
       // Update specific block type data
       if (updates.blockData) {
-        let specificBlockData;
         switch (block.blockType) {
-          case BlockType.LINK:
+          case BlockType.LINK:    
             let imageUrl;
+            const LinkBlock = await LinkBlockModel.findOne({ blockId });
+
             if (files?.linkDisplayPicture) {
-              imageUrl = await uploadToS3(files.linkDisplayPicture[0], "block-images");
+              // Delete old file from S3
+
+              await deleteS3File(LinkBlock?.linkDisplayPicture);
+              // Upload new file to S3
+              imageUrl = await uploadToS3(
+                files.linkDisplayPicture[0],
+                "block-images"
+              );
             }
             if ("badge" in updates.blockData) {
               const badge = await BadgeModel.create(updates.blockData.badge);
               specificBlockData = await LinkBlockModel.findOneAndUpdate(
                 { blockId },
-                { 
-                  ...updates.blockData, 
+                {
+                  ...updates.blockData,
                   badge: badge._id,
-                  ...(imageUrl && { linkDisplayPicture: imageUrl })
+                  ...(imageUrl && { linkDisplayPicture: imageUrl }),
                 },
                 { new: true }
               );
             } else {
               specificBlockData = await LinkBlockModel.findOneAndUpdate(
                 { blockId },
-                { 
+                {
                   ...updates.blockData,
-                  ...(imageUrl && { linkDisplayPicture: imageUrl })
+                  ...(imageUrl && { linkDisplayPicture: imageUrl }),
                 },
                 { new: true }
               );
             }
             break;
+
           case BlockType.POLL:
             specificBlockData = await PollBlockModel.findOneAndUpdate(
               { blockId },
@@ -267,15 +277,21 @@ export class BlockController {
             break;
 
           case BlockType.PRODUCT:
+            const ProductBlock = await ProductBlockModel.findOne({ blockId });
+
             let productImageUrl;
             if (files?.productImage) {
-              productImageUrl = await uploadToS3(files.productImage[0], "block-images");
+              await deleteS3File(ProductBlock?.productImage);
+              productImageUrl = await uploadToS3(
+                files.productImage[0],
+                "block-images"
+              );
             }
             specificBlockData = await ProductBlockModel.findOneAndUpdate(
               { blockId },
               {
                 ...updates.blockData,
-                ...(productImageUrl && { productImage: productImageUrl })
+                ...(productImageUrl && { productImage: productImageUrl }),
               },
               { new: true }
             );
@@ -297,6 +313,27 @@ export class BlockController {
             );
             break;
         }
+      } else {
+        // If no blockData, fetch the existing specific block data
+        switch (block.blockType) {
+          case BlockType.LINK:
+            specificBlockData = await LinkBlockModel.findOne({
+              blockId,
+            }).populate("badge");
+            break;
+          case BlockType.POLL:
+            specificBlockData = await PollBlockModel.findOne({ blockId });
+            break;
+          case BlockType.PRODUCT:
+            specificBlockData = await ProductBlockModel.findOne({ blockId });
+            break;
+          case BlockType.SEPARATOR:
+            specificBlockData = await SeparatorBlockModel.findOne({ blockId });
+            break;
+          case BlockType.HEADING:
+            specificBlockData = await HeadingBlockModel.findOne({ blockId });
+            break;
+        }
 
         res.status(200).json({
           success: true,
@@ -306,7 +343,7 @@ export class BlockController {
             blockCardSize: block.blockCardSize,
             blockPositionalIndex: block.blockPositionalIndex,
             isActive: block.isActive,
-            blockData: specificBlockData,
+            // blockData: specificBlockData,
           },
           message: "Block updated successfully",
         });
@@ -500,90 +537,6 @@ export class BlockController {
   }
 
   /**
-   * Archive block
-   */
-  public static async archiveBlock(
-    req: Request<{}, {}, { blockId: string; userId: string }>,
-    res: Response
-  ): Promise<void> {
-    const { blockId, userId } = req.body;
-
-    try {
-      const block = await BlockModel.findById(blockId);
-      if (!block) {
-        res.status(404).json({
-          success: false,
-          message: "Block not found",
-        });
-        return;
-      }
-
-      // Verify block ownership through DodoPage
-      const dodoPage = await DodoPageModel.findOne({
-        _id: block.dodoPageId,
-        userId: userId,
-      });
-
-      if (!dodoPage) {
-        res.status(403).json({
-          success: false,
-          message: "Unauthorized access to block",
-        });
-        return;
-      }
-
-      block.isActive = false;
-      await block.save();
-
-      res.status(200).json({
-        success: true,
-        message: "Block archived successfully",
-      });
-    } catch (error) {
-      logger.error("Error in archiveBlock:", error);
-      res.status(500).json({
-        success: false,
-        message: "Internal server error",
-      });
-    }
-  }
-
-  /**
-   * Unarchive block
-   */
-  public static async unarchiveBlock(
-    req: Request<{}, {}, { blockId: string; userId: string }>,
-    res: Response
-  ): Promise<void> {
-    const { blockId, userId } = req.body;
-
-    try {
-      const block = await BlockModel.findById(blockId);
-      if (!block) {
-        res.status(404).json({
-          success: false,
-          message: "Block not found",
-        });
-        return;
-      }
-
-      block.isActive = true;
-      await block.save();
-
-      res.status(200).json({
-        success: true,
-        message: "Block unarchived successfully",
-      });
-    } catch (error) {
-      logger.error("Error in unarchiveBlock:", error);
-      res.status(500).json({
-        success: false,
-        message: "Internal server error",
-      });
-    }
-  }
-
-  /**
    * Get all archived blocks for a user
    */
   public static async getArchivedBlocks(
@@ -667,7 +620,7 @@ export class BlockController {
   }
 
   /**
-   * Get all blocks for a DodoPage by URL - NO USE
+   * Get all blocks for a DodoPage by URL
    */
 
   public static async getBlocksByDodoPageUrl(

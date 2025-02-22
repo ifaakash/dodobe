@@ -18,7 +18,7 @@ import {
 import { SocialPlatform } from "../../types/user";
 import { ID } from "@/types/common";
 import { BlockType } from "../../types/block";
-import { uploadToS3 } from "../../middleware/fileUpload";
+import { deleteS3File, uploadToS3 } from "../../middleware/fileUpload";
 
 export class DodoPageController {
   /**
@@ -52,14 +52,23 @@ export class DodoPageController {
       }
 
       const socialLinks = DodoPageController.parseSocialLinks(req.body);
+
+      const profilePictureUrl = files?.profilePicture?.[0]
+        ? await uploadToS3(files.profilePicture[0], "dodo-profiles")
+        : undefined;
+
+      const audioBioUrl = files?.audioBio?.[0]
+        ? await uploadToS3(files.audioBio[0], "dodo-audio")
+        : undefined;
+
       const dodoPage = await DodoPageModel.create({
         userId,
         name,
         url: await DodoPageController.generateUniqueUrl(name),
         socialLinks,
         thoughts,
-        profilePicture: files?.profilePicture?.[0]?.path,
-        audioBio: files?.audioBio?.[0]?.path,
+        profilePicture: profilePictureUrl,
+        audioBio: audioBioUrl,
       });
 
       user.dodoPages.push(dodoPage._id as ID);
@@ -74,10 +83,10 @@ export class DodoPageController {
           id: dodoPage._id as ID,
           name: dodoPage.name,
           url: dodoPage.url,
-          profilePicture: FileManager.getFileUrl(dodoPage.profilePicture),
+          profilePicture: FileManager.getFileUrl(profilePictureUrl),
           socialLinks: socialLinksObject,
           thoughts: dodoPage.thoughts,
-          audioBio: FileManager.getFileUrl(dodoPage.audioBio),
+          audioBio: FileManager.getFileUrl(audioBioUrl),
           blocks: dodoPage.blocks,
         },
       });
@@ -160,7 +169,6 @@ export class DodoPageController {
 
       const blocks = await BlockModel.find({
         dodoPageId: dodoPage._id,
-        isActive: true,
       }).sort({ blockPositionalIndex: 1 });
 
       const blocksWithData = await Promise.all(
@@ -292,18 +300,20 @@ export class DodoPageController {
           dodoPage.socialLinks.set(key, value);
         });
       }
-      
 
       // Handle file updates
       if (files?.profilePicture?.[0]) {
-        await FileManager.deleteFile(dodoPage.profilePicture);
+        console.log('PROFILE PICTURE', files.profilePicture[0])
+        // Delete old file from S3
+        await deleteS3File(dodoPage.profilePicture);
+        // Upload new file to S3
         dodoPage.profilePicture = await uploadToS3(
           files.profilePicture[0],
           "dodo-profiles"
         );
       }
       if (files?.audioBio?.[0]) {
-        await FileManager.deleteFile(dodoPage.audioBio);
+        await deleteS3File(dodoPage.audioBio);
         dodoPage.audioBio = await uploadToS3(files.audioBio[0], "dodo-audio");
       }
 
@@ -322,6 +332,7 @@ export class DodoPageController {
           socialLinks: socialLinksObject,
           thoughts: dodoPage.thoughts,
           audioBio: FileManager.getFileUrl(dodoPage.audioBio),
+          blocks: dodoPage.blocks,
         },
       });
     } catch (error) {

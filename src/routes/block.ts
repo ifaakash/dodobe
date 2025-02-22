@@ -32,12 +32,6 @@ router.patch(
 // Reorder blocks
 router.post("/reorder", BlockController.reorderBlocks as RequestHandler);
 
-// Archive block
-router.post("/archive", BlockController.archiveBlock as RequestHandler);
-
-// Unarchive block
-router.post("/unarchive", BlockController.unarchiveBlock as RequestHandler);
-
 // Get archived blocks
 router.get("/get-archived-blocks/:dodoPageURL", BlockController.getArchivedBlocks as RequestHandler<{ dodoPageURL: string }>);
 
