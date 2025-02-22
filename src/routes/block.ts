@@ -33,10 +33,10 @@ router.patch(
 router.post("/reorder", BlockController.reorderBlocks as RequestHandler);
 
 // Archive block
-router.post("/archive", BlockController.archiveBlock as RequestHandler);
+// router.post("/archive", BlockController.archiveBlock as RequestHandler);
 
 // Vote in Poll
-router.post("/poll-vote", BlockController.voteInPoll as RequestHandler);
+// router.post("/poll-vote", BlockController.voteInPoll as RequestHandler);
 
 // Get archived blocks
 router.get("/get-archived-blocks/:dodoPageURL", BlockController.getArchivedBlocks as RequestHandler<{ dodoPageURL: string }>);

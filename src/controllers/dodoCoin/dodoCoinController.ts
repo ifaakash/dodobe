@@ -6,6 +6,8 @@ import {
 } from "../../models/dodoCoin/model";
 import {
     UpdateCoinsRequest,
+    UpdateCoinsResponse,
+    UpdateCoinsResponseError,
     RedeemCoinsRequest,
     GetUserCoinsResponse,
     RedeemCoinsResponse,
@@ -21,7 +23,7 @@ export class DodoCoinController {
      */
     public static async updateCoins(
         req: Request<{}, {}, UpdateCoinsRequest>,
-        res: Response
+        res: Response<UpdateCoinsResponse | UpdateCoinsResponseError>
     ) {
         try {
             const {
@@ -30,7 +32,6 @@ export class DodoCoinController {
                 transactionType,
                 description,
                 milestoneType,
-                metadata,
             } = req.body;
 
             const user = await UserModel.findById(userId);
@@ -46,10 +47,9 @@ export class DodoCoinController {
                 user.coinTransactions = [];
             }
 
-            // Validate sufficient balance for spending/redeeming
+            // Verify sufficient balance for spending
             if (
-                (transactionType === TransactionType.SPENT ||
-                    transactionType === TransactionType.REDEEMED) &&
+                transactionType === TransactionType.SPENT &&
                 (user.dodoCoins || 0) < amount
             ) {
                 return res.status(400).json({
@@ -58,22 +58,20 @@ export class DodoCoinController {
                 });
             }
 
-            // Create transaction record
+            // Create transaction
             const transaction = await CoinTransactionModel.create({
                 userId,
                 amount,
                 transactionType,
                 description,
                 milestoneType,
-                metadata,
             });
 
-            // Update user's coin balance
-            const balanceChange =
-                transactionType === TransactionType.EARNED ? amount : -amount;
+            // Update user's balance only
+            user.dodoCoins =
+                (user.dodoCoins || 0) +
+                (transactionType === TransactionType.EARNED ? amount : -amount);
 
-            user.dodoCoins = (user.dodoCoins || 0) + balanceChange;
-            user.coinTransactions.push(transaction._id as ID);
             await user.save();
 
             return res.status(200).json({
@@ -82,7 +80,6 @@ export class DodoCoinController {
                     newBalance: user.dodoCoins,
                     transaction,
                 },
-                msg: "Coins updated successfully",
             });
         } catch (error) {
             logger.error("Error in updateCoins:", error);

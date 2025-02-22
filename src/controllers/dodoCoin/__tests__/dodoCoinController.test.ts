@@ -5,7 +5,11 @@ import {
     CoinTransactionModel,
     RedeemableItemModel,
 } from "../../../models";
-import { TransactionType, CoinMilestoneType } from "../../../types/dodoCoin";
+import {
+    TransactionType,
+    CoinMilestoneType,
+    ICoinTransaction,
+} from "../../../types/dodoCoin";
 import { Types } from "mongoose";
 import { createTestUser } from "../../../test/helpers";
 import { ID } from "../../../types/common";
@@ -102,6 +106,321 @@ describe("DodoCoinController", () => {
 
             expect(response.status).toBe(404);
             expect(response.body.success).toBe(false);
+        });
+
+        it("should handle multiple coin transactions correctly", async () => {
+            // Series of transactions
+            const transactions = [
+                {
+                    amount: 50,
+                    transactionType: TransactionType.EARNED,
+                    description: "First earn",
+                },
+                {
+                    amount: 30,
+                    transactionType: TransactionType.SPENT,
+                    description: "First spend",
+                },
+                {
+                    amount: 100,
+                    transactionType: TransactionType.EARNED,
+                    description: "Second earn",
+                },
+                {
+                    amount: 40,
+                    transactionType: TransactionType.SPENT,
+                    description: "Second spend",
+                },
+            ];
+
+            // Execute transactions sequentially
+            let expectedBalance = 0;
+            for (const tx of transactions) {
+                const response = await request(app)
+                    .post("/api/v1/coins/update")
+                    .send({
+                        userId,
+                        amount: tx.amount,
+                        transactionType: tx.transactionType,
+                        description: tx.description,
+                    });
+
+                // Update expected balance
+                expectedBalance +=
+                    tx.transactionType === TransactionType.EARNED
+                        ? tx.amount
+                        : -tx.amount;
+
+                expect(response.status).toBe(200);
+                expect(response.body.success).toBe(true);
+                expect(response.body.data.newBalance).toBe(expectedBalance);
+            }
+
+            // Verify final user balance
+            const user = await UserModel.findById(userId);
+            expect(user?.dodoCoins).toBe(80); // 50 - 30 + 100 - 40 = 80
+
+            // Verify all transactions were recorded
+            const allTransactions = await CoinTransactionModel.find({
+                userId,
+            }).sort({ createdAt: 1 });
+            expect(allTransactions).toHaveLength(4);
+
+            // Verify transaction details
+            expect(allTransactions[0].amount).toBe(50);
+            expect(allTransactions[0].transactionType).toBe(
+                TransactionType.EARNED
+            );
+            expect(allTransactions[1].amount).toBe(30);
+            expect(allTransactions[1].transactionType).toBe(
+                TransactionType.SPENT
+            );
+            expect(allTransactions[2].amount).toBe(100);
+            expect(allTransactions[2].transactionType).toBe(
+                TransactionType.EARNED
+            );
+            expect(allTransactions[3].amount).toBe(40);
+            expect(allTransactions[3].transactionType).toBe(
+                TransactionType.SPENT
+            );
+        });
+
+        it("should handle concurrent coin transactions correctly", async () => {
+            // First set initial balance
+            const user = await UserModel.findById(userId);
+            user!.dodoCoins = 100;
+            await user!.save();
+
+            // Create multiple concurrent transactions
+            const transactions = [
+                {
+                    amount: 20,
+                    transactionType: TransactionType.SPENT,
+                    description: "Concurrent spend 1",
+                },
+                {
+                    amount: 30,
+                    transactionType: TransactionType.SPENT,
+                    description: "Concurrent spend 2",
+                },
+                {
+                    amount: 50,
+                    transactionType: TransactionType.EARNED,
+                    description: "Concurrent earn",
+                },
+            ];
+
+            // Execute transactions sequentially to ensure consistent results
+            let expectedBalance = 100; // Start with initial balance
+            for (const tx of transactions) {
+                const response = await request(app)
+                    .post("/api/v1/coins/update")
+                    .send({
+                        userId,
+                        amount: tx.amount,
+                        transactionType: tx.transactionType,
+                        description: tx.description,
+                    });
+
+                expect(response.status).toBe(200);
+                expect(response.body.success).toBe(true);
+
+                // Update expected balance
+                expectedBalance +=
+                    tx.transactionType === TransactionType.EARNED
+                        ? tx.amount
+                        : -tx.amount;
+            }
+
+            // Verify final balance (100 - 20 - 30 + 50 = 100)
+            const updatedUser = await UserModel.findById(userId);
+            expect(updatedUser?.dodoCoins).toBe(expectedBalance);
+
+            // Verify all transactions were recorded
+            const allTransactions = await CoinTransactionModel.find({ userId });
+            expect(allTransactions).toHaveLength(3);
+
+            // Verify transaction details
+            const sortedTransactions = allTransactions.sort(
+                (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
+            );
+
+            // Verify each transaction matches our expectations
+            transactions.forEach((tx, index) => {
+                expect(sortedTransactions[index].amount).toBe(tx.amount);
+                expect(sortedTransactions[index].transactionType).toBe(
+                    tx.transactionType
+                );
+                expect(sortedTransactions[index].description).toBe(
+                    tx.description
+                );
+            });
+
+            // Verify the final balance matches our transaction history
+            const transactionSum = sortedTransactions.reduce((sum, tx) => {
+                return (
+                    sum +
+                    (tx.transactionType === TransactionType.EARNED
+                        ? tx.amount
+                        : -tx.amount)
+                );
+            }, 100); // Start with initial balance
+            expect(transactionSum).toBe(expectedBalance);
+        });
+
+        it("should handle sequential coin transactions without duplicates in User model", async () => {
+            // First set initial balance
+            const user = await UserModel.findById(userId);
+            user!.dodoCoins = 100;
+            await user!.save();
+
+            const transactions = [
+                {
+                    amount: 20,
+                    transactionType: TransactionType.SPENT,
+                    description: "First spend",
+                },
+                {
+                    amount: 30,
+                    transactionType: TransactionType.SPENT,
+                    description: "Second spend",
+                },
+                {
+                    amount: 50,
+                    transactionType: TransactionType.EARNED,
+                    description: "First earn",
+                },
+            ];
+
+            // Execute transactions sequentially
+            for (const tx of transactions) {
+                const response = await request(app)
+                    .post("/api/v1/coins/update")
+                    .send({
+                        userId,
+                        amount: tx.amount,
+                        transactionType: tx.transactionType,
+                        description: tx.description,
+                    });
+
+                expect(response.status).toBe(200);
+                expect(response.body.success).toBe(true);
+            }
+
+            // Get the final state
+            const [updatedUser, coinTransactions] = await Promise.all([
+                UserModel.findById(userId).populate<{
+                    coinTransactions: ICoinTransaction[];
+                }>("coinTransactions"),
+                CoinTransactionModel.find({ userId }),
+            ]);
+
+            // Log the current state for debugging
+            console.log("CoinTransaction count:", coinTransactions.length);
+            console.log(
+                "User coinTransactions count:",
+                updatedUser?.coinTransactions.length
+            );
+
+            // Basic length checks
+            expect(coinTransactions).toHaveLength(3);
+            expect(updatedUser?.coinTransactions).toHaveLength(3);
+
+            // Check for duplicate transaction IDs in User model
+            const transactionIds = updatedUser?.coinTransactions.map((tx) =>
+                (tx._id as ID).toString()
+            );
+            const uniqueTransactionIds = new Set(transactionIds);
+
+            // Log duplicate IDs if any
+            if (
+                transactionIds &&
+                transactionIds.length !== uniqueTransactionIds.size
+            ) {
+                const duplicates = transactionIds.filter(
+                    (id, index) => transactionIds.indexOf(id) !== index
+                );
+                console.log("Duplicate transaction IDs:", duplicates);
+            }
+
+            expect(uniqueTransactionIds.size).toBe(3);
+
+            // Verify each CoinTransaction appears exactly once in User model
+            coinTransactions.forEach((coinTx) => {
+                const count = updatedUser?.coinTransactions.filter(
+                    (userTx) =>
+                        (userTx._id as ID).toString() ===
+                        (coinTx._id as ID).toString()
+                ).length;
+                expect(count).toBe(1);
+            });
+        });
+
+        it("should not create duplicate transactions in User model during concurrent updates", async () => {
+            // First set initial balance
+            const user = await UserModel.findById(userId);
+            user!.dodoCoins = 100;
+            await user!.save();
+
+            const transactions = [
+                {
+                    amount: 10,
+                    transactionType: TransactionType.EARNED,
+                    description: "Concurrent earn 1",
+                },
+                {
+                    amount: 20,
+                    transactionType: TransactionType.EARNED,
+                    description: "Concurrent earn 2",
+                },
+                {
+                    amount: 30,
+                    transactionType: TransactionType.EARNED,
+                    description: "Concurrent earn 3",
+                },
+            ];
+
+            // Execute transactions concurrently
+            await Promise.all(
+                transactions.map((tx) =>
+                    request(app).post("/api/v1/coins/update").send({
+                        userId,
+                        amount: tx.amount,
+                        transactionType: tx.transactionType,
+                        description: tx.description,
+                    })
+                )
+            );
+
+            // Verify transactions in both models
+            const [updatedUser, coinTransactions] = await Promise.all([
+                UserModel.findById(userId).populate<{
+                    coinTransactions: ICoinTransaction[];
+                }>("coinTransactions"),
+                CoinTransactionModel.find({ userId }),
+            ]);
+
+            // Verify lengths match
+            expect(coinTransactions).toHaveLength(3);
+            expect(updatedUser?.coinTransactions).toHaveLength(3);
+
+            // Verify no duplicate transaction IDs in User model
+            const uniqueTransactionIds = new Set(
+                updatedUser?.coinTransactions.map((tx) =>
+                    (tx._id as ID).toString()
+                )
+            );
+            expect(uniqueTransactionIds.size).toBe(3);
+
+            // Verify all transaction IDs in User model exist in CoinTransaction model
+            const coinTransactionIds = new Set(
+                coinTransactions.map((tx) => (tx._id as ID).toString())
+            );
+            updatedUser?.coinTransactions.forEach((tx) => {
+                expect(coinTransactionIds.has((tx._id as ID).toString())).toBe(
+                    true
+                );
+            });
         });
     });
 

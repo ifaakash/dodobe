@@ -43,7 +43,6 @@ export interface IBadge extends BaseDocument {
     text: string;
     color: string;
     backgroundColor: string;
-    backgroundColor: string;
 }
 
 export interface IPollBlock extends BaseDocument {
@@ -92,8 +91,6 @@ export interface CreateBlockRequest {
 }
 
 export interface UpdateBlockRequest {
-    blockId: string;
-    userId: string;
     blockId: string;
     userId: string;
     blockData?: Partial<BlockData>;

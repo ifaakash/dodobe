@@ -4,7 +4,6 @@ export enum TransactionType {
     EARNED = "EARNED",
     SPENT = "SPENT",
     REDEEMED = "REDEEMED",
-    ADMIN_ADJUSTMENT = "ADMIN_ADJUSTMENT",
 }
 
 export enum CoinMilestoneType {
@@ -51,6 +50,19 @@ export interface UpdateCoinsRequest {
     description: string;
     milestoneType?: CoinMilestoneType;
     metadata?: Record<string, any>;
+}
+
+export interface UpdateCoinsResponse {
+    success: boolean;
+    data: {
+        newBalance: number;
+        transaction: ICoinTransaction;
+    };
+}
+
+export interface UpdateCoinsResponseError {
+    success: boolean;
+    msg: string;
 }
 
 export interface GetUserCoinsResponse {
