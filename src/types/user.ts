@@ -1,4 +1,6 @@
 import { BaseDocument, ID } from "./common";
+import { IInvoice } from "./invoice";
+import { IBankDetail, IClientDetail, IRecipientDetail } from "./invoice";
 
 export enum SocialPlatform {
     LINKEDIN = "linkedin",

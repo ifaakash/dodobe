@@ -187,11 +187,10 @@ export interface AddSubHeadingResponse {
 export interface GetInvoiceStatsRequest {
   userId: ID;
   timeFrame: string;
-} 
+}
 
 export interface GetInvoiceStatsResponse {
   success: boolean;
-  msg: string;
   data?: {
     invoices: {
       created: number;
@@ -199,7 +198,10 @@ export interface GetInvoiceStatsResponse {
       due: number;
     };
     outStandingAmount: number;
-    paidAmount: number;
     pendingAmount: number;
+    paidAmount: number;
+    totalAmount: number;
+    unpaidAmount: number;
   };
+  msg: string;
 }

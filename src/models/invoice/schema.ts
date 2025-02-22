@@ -59,6 +59,7 @@ const recipientDetailSchema = new Schema<IRecipientDetail>(
 const clientDetailSchema = new Schema<IClientDetail>(
     {
         userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+        email: { type: String, required: true },
         name: { type: String, required: true },
         state: { type: String, required: true },
         city: { type: String, required: true },
@@ -75,9 +76,13 @@ const clientDetailSchema = new Schema<IClientDetail>(
 
 const invoiceSchema = new Schema<IInvoice>(
     {
-        invoiceNumber: { type: Number, required: true, unique: true },
+        invoiceNumber: { type: Number, required: true },
         userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
         items: [{ type: Schema.Types.ObjectId, ref: "Item" }],
+        subHeading: {
+            type: String,
+            default: "",
+        },
         discount: { type: Number, default: 0 },
         note: String,
         date: { type: Date, required: true },

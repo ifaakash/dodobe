@@ -8,6 +8,7 @@ import {
     IProductBlock,
     IBadge,
     IHeadingBlock,
+    ISeparatorBlock,
 } from "../../types/block";
 
 const blockSchema = new Schema<IBlock>(
@@ -40,6 +41,7 @@ const badgeSchema = new Schema<IBadge>(
     {
         text: { type: String, required: true },
         color: { type: String, required: true },
+        backgroundColor: { type: String, required: true },
     },
     {
         timestamps: true,
@@ -53,6 +55,7 @@ const linkBlockSchema = new Schema<ILinkBlock>(
         linkDisplayPicture: String,
         url: { type: String, required: true },
         badge: { type: Schema.Types.ObjectId, ref: "Badge" },
+        blockCardSize: { type: String, required: true },
     },
     {
         timestamps: true,
@@ -65,11 +68,7 @@ const pollBlockSchema = new Schema<IPollBlock>(
         question: { type: String, required: true },
         options: [{ type: String, required: true }],
         isMultipleOptionsAllowed: { type: Boolean, default: false },
-        optionCounts: {
-            type: Map,
-            of: Number,
-            default: {},
-        },
+        optionCounts: { type: Object, required: true, default: {} },
     },
     {
         timestamps: true,
@@ -79,7 +78,7 @@ const pollBlockSchema = new Schema<IPollBlock>(
 const productBlockSchema = new Schema<IProductBlock>(
     {
         blockId: { type: Schema.Types.ObjectId, ref: "Block", required: true },
-        productImage: { type: String, required: true },
+        productImage: String,
         title: { type: String, required: true },
         link: { type: String, required: true },
     },
@@ -98,6 +97,17 @@ const headingBlockSchema = new Schema<IHeadingBlock>(
     }
 );
 
+const separatorBlockSchema = new Schema<ISeparatorBlock>(
+    {
+        blockId: { type: Schema.Types.ObjectId, ref: "Block", required: true },
+        separatorType: { type: String, required: true },
+    },
+    {
+        timestamps: true,
+    }
+);
+
+
 export {
     blockSchema,
     badgeSchema,
@@ -105,4 +115,5 @@ export {
     pollBlockSchema,
     productBlockSchema,
     headingBlockSchema,
+    separatorBlockSchema,
 };

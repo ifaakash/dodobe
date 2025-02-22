@@ -7,13 +7,13 @@ const router: Router = Router();
 
 // Create new DodoPage
 router.post(
-    "/create",
-    upload.fields([
-        { name: "profilePicture", maxCount: 1 },
-        { name: "audioBio", maxCount: 1 },
-    ]),
-    handleFileUploadError,
-    DodoPageController.createDodoPage
+  "/create",
+  upload.fields([
+    { name: "profilePicture", maxCount: 1 },
+    { name: "audioBio", maxCount: 1 },
+  ]),
+  handleFileUploadError,
+  DodoPageController.createDodoPage
 );
 
 // Get DodoPage by custom URL
@@ -27,13 +27,13 @@ router.get("/get-by-user/:userId", DodoPageController.getUserDodoPages);
 
 // Update DodoPage
 router.patch(
-    "/update/:id",
-    upload.fields([
-        { name: "profilePicture", maxCount: 1 },
-        { name: "audioBio", maxCount: 1 },
-    ]),
-    handleFileUploadError,
-    DodoPageController.updateDodoPage
+  "/update",
+  upload.fields([
+    { name: "profilePicture", maxCount: 1 },
+    { name: "audioBio", maxCount: 1 },
+  ]),
+  handleFileUploadError,
+  DodoPageController.updateDodoPage
 );
 
 // Delete DodoPage

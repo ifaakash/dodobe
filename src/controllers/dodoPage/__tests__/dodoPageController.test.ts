@@ -92,6 +92,7 @@ describe("DodoPageController", () => {
         });
     });
 
+    // to be fixed
     describe("PATCH /api/v1/dodo-page/update/:id", () => {
         it("should update a dodo page", async () => {
             const response = await request(app)

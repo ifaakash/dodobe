@@ -3,6 +3,10 @@ import {
     UserModel,
     DodoPageModel,
     UserInterestCategoryModel,
+    BankDetailModel,
+    InvoiceModel,
+    ClientDetailModel,
+    RecipientDetailModel,
 } from "../../models";
 import { logger } from "../../utils/logger";
 import {
@@ -180,6 +184,11 @@ export class AuthController {
                     select: "_id amount transactionType description createdAt",
                 });
 
+            const bankDetails = await BankDetailModel.find({ userId });
+            const invoices = await InvoiceModel.find({ userId });
+            const clientDetails = await ClientDetailModel.find({ userId });
+            const recipientDetails = await RecipientDetailModel.find({ userId });
+
             if (!user) {
                 res.status(404).json({
                     success: false,
@@ -229,10 +238,4 @@ export class AuthController {
         }
     }
 
-    // public static async updateUserDetails(
-    //     req: Request<UpdateUserDetailsRequest>,
-    //     res: Response
-    // ): Promise<void> {
-    //     const { userId, name, interests } = req.body;
-    // }
 }

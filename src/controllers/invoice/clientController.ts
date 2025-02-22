@@ -22,7 +22,7 @@ export class ClientController {
       }
       const client = await ClientDetailModel.create(req.body);
 
-      user.clientDetails.push(client._id);
+      user.clientDetails.push(client._id as any);
       await user.save();
       await client.save();
 

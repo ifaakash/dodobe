@@ -7,31 +7,46 @@ import { RequestHandler } from "express";
 const router: Router = Router();
 
 // Create new block
-router.post(
-    "/create",
-    upload.fields([
-        { name: "linkDisplayPicture", maxCount: 1 },
-        { name: "productImage", maxCount: 1 },
-    ]) as RequestHandler,
-    handleFileUploadError,
-    BlockController.createBlock as RequestHandler
+router.post("/create", upload.fields([
+    { name: "linkDisplayPicture", maxCount: 1 },
+    { name: "productImage", maxCount: 1 },
+  ]) as RequestHandler,
+  handleFileUploadError,
+  BlockController.createBlock as RequestHandler
 );
+
+// Get blocks by DodoPage URL
+router.get('/get/:dodoPageUrl', BlockController.getBlocksByDodoPageUrl);
 
 // Update block
 router.patch(
-    "/update/:blockId",
-    upload.fields([
-        { name: "linkDisplayPicture", maxCount: 1 },
-        { name: "productImage", maxCount: 1 },
-    ]) as RequestHandler,
-    handleFileUploadError,
-    BlockController.updateBlock
+  "/update",
+  upload.fields([
+    { name: "linkDisplayPicture", maxCount: 1 },
+    { name: "productImage", maxCount: 1 },
+  ]) as RequestHandler,
+  handleFileUploadError,
+  BlockController.updateBlock
 );
 
 // Reorder blocks
 router.post("/reorder", BlockController.reorderBlocks as RequestHandler);
 
+// Archive block
+router.post("/archive", BlockController.archiveBlock as RequestHandler);
+
+// Vote in Poll
+router.post("/poll-vote", BlockController.voteInPoll as RequestHandler);
+
+// Get archived blocks
+router.get("/get-archived-blocks/:dodoPageURL", BlockController.getArchivedBlocks as RequestHandler<{ dodoPageURL: string }>);
+
 // Delete block
-router.delete("/delete/:blockId", BlockController.deleteBlock);
+router.delete("/delete", BlockController.deleteBlock as RequestHandler<{ blockId: string, userId: string }>);
+
+// Get block by ID
+router.get("/getById/:blockId", BlockController.getBlockById as RequestHandler<{ blockId: string }>);
+
+router.post('/poll-vote', BlockController.pollVote as RequestHandler);
 
 export { router as blockRouter };

@@ -10,10 +10,13 @@ export interface CreateDodoPageRequest {
 }
 
 export interface UpdateDodoPageRequest {
+    id: ID;
+    userId: ID;
     name?: string;
     socialLinks?: SocialLinks;
     thoughts?: string;
     audioBio?: string;
+    profilePicture?: string;
 }
 
 export interface DodoPageResponse {

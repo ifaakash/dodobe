@@ -24,7 +24,7 @@ export class RecipientController {
       }
       const recipient = await RecipientDetailModel.create(req.body);
 
-      user.recipientDetails.push(recipient._id);
+      user.recipientDetails.push(recipient._id as any);
       await recipient.save();
       await user.save();
 
