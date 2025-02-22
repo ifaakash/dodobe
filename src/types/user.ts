@@ -19,10 +19,12 @@ export interface IUser extends BaseDocument {
     otplessId?: string;
     dodoPages: ID[];
     interestCategories: ID[];
-    bankDetails: IBankDetail[];
-    invoices: IInvoice[];
-    clientDetails: IClientDetail[];
-    recipientDetails: IRecipientDetail[];
+    bankDetails: ID[];
+    invoices: ID[];
+    clientDetails: ID[];
+    recipientDetails: ID[];
+    dodoCoins: number;
+    coinTransactions: ID[]; // Reference to coin transactions
 }
 
 export interface IUserInterestCategory extends BaseDocument {

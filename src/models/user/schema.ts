@@ -16,6 +16,18 @@ const userSchema = new Schema<IUser>(
         recipientDetails: [
             { type: Schema.Types.ObjectId, ref: "RecipientDetail" },
         ],
+        dodoCoins: {
+            type: Number,
+            default: 0,
+            min: 0,
+        },
+        coinTransactions: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: "CoinTransaction",
+                default: [],
+            },
+        ],
     },
     {
         timestamps: true,

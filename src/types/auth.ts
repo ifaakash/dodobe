@@ -1,6 +1,6 @@
 import { ID } from "./common";
-import { IDodoPage, IUser, SocialLinks } from "./user";
-
+import { SocialLinks } from "./user";
+import { TransactionType } from "./dodoCoin";
 export interface RegisterRequest {
     mobileNumber: string;
     otplessId: string;
@@ -38,7 +38,7 @@ export interface GetUserDetailsResponse {
     success: boolean;
     user: {
         id: ID;
-        otplessId: any; //any because we dont know the type of otplessId yet
+        otplessId: any;
         name: string;
         mobileNumber: string;
         interestCategories: string[];
@@ -52,6 +52,14 @@ export interface GetUserDetailsResponse {
         invoices: ID[];
         clientDetails: ID[];
         recipientDetails: ID[];
+        dodoCoins: number;
+        coinTransactions: {
+            id: ID;
+            amount: number;
+            transactionType: TransactionType;
+            description: string;
+            createdAt: Date;
+        }[];
     };
 }
 export interface UpdateUserDetailsResponseError {

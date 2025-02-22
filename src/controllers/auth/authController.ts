@@ -21,6 +21,8 @@ import mongoose from "mongoose";
 import { Types } from "mongoose";
 import { IUserInterestCategory, IDodoPage } from "../../types/user";
 import { FileManager } from "../../utils/fileManager";
+import { ICoinTransaction } from "@/types/dodoCoin";
+import { ID } from "@/types/common";
 
 export class AuthController {
     /**
@@ -176,6 +178,10 @@ export class AuthController {
                 .populate<{ interestCategories: IUserInterestCategory[] }>({
                     path: "interestCategories",
                     select: "category",
+                })
+                .populate<{ coinTransactions: ICoinTransaction[] }>({
+                    path: "coinTransactions",
+                    select: "_id amount transactionType description createdAt",
                 });
 
             const bankDetails = await BankDetailModel.find({ userId });
@@ -209,10 +215,18 @@ export class AuthController {
                             ? FileManager.getFileUrl(page.profilePicture)
                             : "",
                     })) as any,
-                    bankDetails: bankDetails as any,
-                    invoices: invoices as any,
-                    clientDetails: clientDetails as any,
-                    recipientDetails: recipientDetails as any,
+                    bankDetails: user.bankDetails,
+                    invoices: user.invoices,
+                    clientDetails: user.clientDetails,
+                    recipientDetails: user.recipientDetails,
+                    dodoCoins: user.dodoCoins || 0,
+                    coinTransactions: user.coinTransactions.map((tx) => ({
+                        id: tx._id as ID,
+                        amount: tx.amount,
+                        transactionType: tx.transactionType,
+                        description: tx.description,
+                        createdAt: tx.createdAt,
+                    })),
                 },
             });
         } catch (error) {

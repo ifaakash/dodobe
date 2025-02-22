@@ -2,6 +2,9 @@ import request from "supertest";
 import { app } from "../../../app";
 import { UserModel } from "../../../models";
 import mongoose from "mongoose";
+import { CoinTransactionModel } from "../../../models";
+import { TransactionType } from "../../../types/dodoCoin";
+import { createTestUser } from "@/test/helpers";
 
 describe("AuthController", () => {
     describe("POST /api/v1/auth/register", () => {
@@ -127,6 +130,50 @@ describe("AuthController", () => {
             expect(response.body).toEqual({
                 success: false,
                 message: "Invalid user ID format",
+            });
+        });
+
+        it("should return user details with dodo coins and transactions", async () => {
+            // Create a user with some coin transactions
+            const user = await createTestUser();
+
+            // Create some transactions
+            await CoinTransactionModel.create([
+                {
+                    userId: user._id,
+                    amount: 50,
+                    transactionType: TransactionType.EARNED,
+                    description: "Test earning",
+                },
+                {
+                    userId: user._id,
+                    amount: 30,
+                    transactionType: TransactionType.SPENT,
+                    description: "Test spending",
+                },
+            ]);
+
+            // Update user with coins
+            await UserModel.findByIdAndUpdate(
+                user._id,
+                {
+                    dodoCoins: 100,
+                },
+                { new: true }
+            );
+
+            const response = await request(app).get(
+                `/api/v1/auth/user/${user._id}`
+            );
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+            expect(response.body.user.dodoCoins).toBe(100);
+            expect(response.body.user.coinTransactions).toHaveLength(2);
+            expect(response.body.user.coinTransactions[0]).toMatchObject({
+                amount: 50,
+                transactionType: TransactionType.EARNED,
+                description: "Test earning",
             });
         });
     });
