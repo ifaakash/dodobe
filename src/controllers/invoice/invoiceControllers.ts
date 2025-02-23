@@ -105,8 +105,8 @@ export class InvoiceController {
       });
     } catch (error) {
       return res.status(500).json({
-        success: false,
-        msg: (error as Error).message,
+          success: false,
+          msg: "Internal server error: " + error,
       });
     }
   }
@@ -153,8 +153,8 @@ export class InvoiceController {
       const err = error as Error;
       console.log(err);
       return res.status(500).json({
-        success: false,
-        msg: err.message,
+          success: false,
+          msg: "Internal server error: " + error,
       });
     }
   }
@@ -192,8 +192,8 @@ export class InvoiceController {
       });
     } catch (error) {
       return res.status(500).json({
-        success: false,
-        msg: (error as Error).message,
+          success: false,
+          msg: "Internal server error: " + error,
       });
     }
   }
@@ -247,7 +247,10 @@ export class InvoiceController {
     } catch (error) {
       const err = error as Error;
       console.log(err);
-      return res.status(500).json({ message: err.message });
+      return res.status(500).json({
+          success: false,
+          msg: "Internal server error: " + error,
+      });
     }
   }
 
@@ -394,8 +397,8 @@ export class InvoiceController {
     } catch (error) {
       console.error("Error in getInvoiceStats:", error);
       res.status(500).json({
-        success: false,
-        msg: "Internal server error",
+          success: false,
+          msg: "Internal server error: " + error,
       });
     }
   }
@@ -428,8 +431,8 @@ export class InvoiceController {
       });
     } catch (error) {
       return res.status(500).json({
-        success: false,
-        msg: (error as Error).message,
+          success: false,
+          msg: "Internal server error: " + error,
       });
     }
   }

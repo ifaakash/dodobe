@@ -66,7 +66,7 @@ export class AuthController {
             logger.error("Error in registerUser:", error);
             res.status(500).json({
                 success: false,
-                message: "Internal server error",
+                message: "Internal server error: " + error,
                 userId: new Types.ObjectId(),
                 isNewUser: false,
                 token: "",
@@ -233,7 +233,7 @@ export class AuthController {
             logger.error("Error in getUserDetails:", error);
             res.status(500).json({
                 success: false,
-                message: "Internal server error",
+                message: "Internal server error: " + error,
             });
         }
     }

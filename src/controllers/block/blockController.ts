@@ -375,8 +375,8 @@ export class BlockController {
     } catch (error) {
       logger.error("Error in updateBlock:", error);
       res.status(500).json({
-        success: false,
-        message: "Internal server error",
+          success: false,
+          message: "Internal server error: " + error,
       });
     }
   }
@@ -450,8 +450,8 @@ export class BlockController {
     } catch (error) {
       logger.error("Error in reorderBlocks:", error);
       res.status(500).json({
-        success: false,
-        message: "Internal server error",
+          success: false,
+          message: "Internal server error: " + error,
       });
     }
   }
@@ -553,8 +553,8 @@ export class BlockController {
       await session.abortTransaction();
       logger.error("Error in deleteBlock:", error);
       res.status(500).json({
-        success: false,
-        message: "Internal server error",
+          success: false,
+          message: "Internal server error: " + error,
       });
     } finally {
       session.endSession();
@@ -638,8 +638,8 @@ export class BlockController {
     } catch (error) {
       logger.error("Error in getArchivedBlocks:", error);
       res.status(500).json({
-        success: false,
-        message: "Internal server error",
+          success: false,
+          message: "Internal server error: " + error,
       });
     }
   }
@@ -726,8 +726,8 @@ export class BlockController {
     } catch (error) {
       logger.error("Error in getBlocksByDodoPageUrl:", error);
       res.status(500).json({
-        success: false,
-        message: "Internal server error",
+          success: false,
+          message: "Internal server error: " + error,
       });
     }
   }
@@ -797,8 +797,8 @@ export class BlockController {
     } catch (error) {
       logger.error("Error in getBlockById:", error);
       res.status(500).json({
-        success: false,
-        message: "Internal server error",
+          success: false,
+          message: "Internal server error: " + error,
       });
     }
   }

@@ -12,4 +12,7 @@ router.post("/complete-profile", AuthController.completeProfile);
 // Get user details
 router.get("/user/:userId", AuthController.getUserDetails);
 
+// Update user details
+// router.patch("/update/:userId", AuthController.updateUserDetails);
+
 export { router as authRouter };

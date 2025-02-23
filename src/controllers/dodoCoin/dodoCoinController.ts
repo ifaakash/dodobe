@@ -85,7 +85,7 @@ export class DodoCoinController {
             logger.error("Error in updateCoins:", error);
             return res.status(500).json({
                 success: false,
-                msg: "Internal server error",
+                msg: "Internal server error: " + error,
             });
         }
     }
@@ -126,7 +126,7 @@ export class DodoCoinController {
             return res.status(500).json({
                 success: false,
                 data: { currentBalance: 0, transactions: [] },
-                msg: "Internal server error",
+                msg: "Internal server error: " + error,
             });
         }
     }
@@ -198,7 +198,7 @@ export class DodoCoinController {
             logger.error("Error in redeemCoins:", error);
             return res.status(500).json({
                 success: false,
-                msg: "Internal server error",
+                msg: "Internal server error: " + error,
             });
         }
     }

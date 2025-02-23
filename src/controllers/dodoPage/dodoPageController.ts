@@ -101,8 +101,8 @@ export class DodoPageController {
 
       logger.error("Error in createDodoPage:", error);
       res.status(500).json({
-        success: false,
-        message: "Internal server error",
+          success: false,
+          message: "Internal server error: " + error,
       });
     }
   }
@@ -229,8 +229,8 @@ export class DodoPageController {
     } catch (error) {
       logger.error("Error in getDodoPageByUrl:", error);
       res.status(500).json({
-        success: false,
-        message: "Internal server error",
+          success: false,
+          message: "Internal server error: " + error,
       });
     }
   }
@@ -340,8 +340,8 @@ export class DodoPageController {
     } catch (error) {
       logger.error("Error in updateDodoPage:", error);
       res.status(500).json({
-        success: false,
-        message: "Internal server error",
+          success: false,
+          message: "Internal server error: " + error,
       });
     }
   }
@@ -372,8 +372,8 @@ export class DodoPageController {
     } catch (error) {
       logger.error("Error in getUserDodoPages:", error);
       res.status(500).json({
-        success: false,
-        message: "Internal server error",
+          success: false,
+          message: "Internal server error: " + error,
       });
     }
   }
@@ -413,8 +413,8 @@ export class DodoPageController {
     } catch (error) {
       logger.error("Error in deleteDodoPage:", error);
       res.status(500).json({
-        success: false,
-        message: "Internal server error",
+          success: false,
+          message: "Internal server error: " + error,
       });
     }
   }
@@ -454,8 +454,8 @@ export class DodoPageController {
     } catch (error) {
       logger.error("Error in getDodoPageById:", error);
       res.status(500).json({
-        success: false,
-        message: "Internal server error",
+          success: false,
+          message: "Internal server error: " + error,
       });
     }
   }
