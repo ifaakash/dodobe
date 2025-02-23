@@ -2,6 +2,7 @@ stages:
   - runner_up
   - build
   - test
+  - deploy
   - deploy_dev
   - deploy_prd
   - cleanup
