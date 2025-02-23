@@ -31,7 +31,7 @@ v1Router.use("/coins", dodoCoinRouter);
 v1Router.get("/health", (req, res) => {
     res.status(200).json({
         success: true,
-        message: `DODO Server is running on port ${process.env.PORT}`,
+        message: `DODO BE Server is running on port ${process.env.PORT}`,
     });
 });
 
