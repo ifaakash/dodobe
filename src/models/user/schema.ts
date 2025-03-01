@@ -5,7 +5,7 @@ const userSchema = new Schema<IUser>(
     {
         name: { type: String },
         mobileNumber: { type: String, required: true },
-        otplessId: { type: String, unique: true, sparse: true },
+        firebaseUid: { type: String, unique: true, sparse: true },
         dodoPages: [{ type: Schema.Types.ObjectId, ref: "DodoPage" }],
         interestCategories: [
             { type: Schema.Types.ObjectId, ref: "UserInterestCategory" },

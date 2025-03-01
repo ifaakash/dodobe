@@ -9,6 +9,10 @@ import {
     coinMilestoneSchema,
     redeemableItemSchema,
 } from "./schema";
+import { registerCoinTransactionMiddleware } from "../../middleware/userCoinHandler";
+
+// Register the middleware
+registerCoinTransactionMiddleware();
 
 const CoinTransactionModel = model<ICoinTransaction>(
     "CoinTransaction",

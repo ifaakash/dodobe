@@ -3,7 +3,7 @@ import { SocialLinks } from "./user";
 import { TransactionType } from "./dodoCoin";
 export interface RegisterRequest {
     mobileNumber: string;
-    otplessId: string;
+    firebaseUid: string;
     token: string;
 }
 
@@ -38,7 +38,7 @@ export interface GetUserDetailsResponse {
     success: boolean;
     user: {
         id: ID;
-        otplessId: any;
+        firebaseUid: any;
         name: string;
         mobileNumber: string;
         interestCategories: string[];

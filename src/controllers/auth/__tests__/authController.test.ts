@@ -13,7 +13,7 @@ describe("AuthController", () => {
                 .post("/api/v1/auth/register")
                 .send({
                     mobileNumber: "+919876543210",
-                    otplessId: "test-otpless-id",
+                    firebaseUid: "test-firebaseUid-id",
                 });
 
             expect(response.status).toBe(201);
@@ -24,7 +24,7 @@ describe("AuthController", () => {
                 mobileNumber: "+919876543210",
             });
             expect(user).toBeDefined();
-            expect(user?.otplessId).toBe("test-otpless-id");
+            expect(user?.firebaseUid).toBe("test-firebaseUid-id");
         });
     });
 
@@ -35,7 +35,7 @@ describe("AuthController", () => {
                 .post("/api/v1/auth/register")
                 .send({
                     mobileNumber: "+919876543210",
-                    otplessId: "test-otpless-id",
+                    firebaseUid: "test-firebaseUid-id",
                 });
 
             const userId = registerResponse.body.userId;
@@ -71,7 +71,7 @@ describe("AuthController", () => {
                 .post("/api/v1/auth/register")
                 .send({
                     mobileNumber: "+919876543210",
-                    otplessId: "test-otpless-id",
+                    firebaseUid: "test-firebaseUid-id",
                 });
 
             const userId = registerResponse.body.userId;
@@ -98,7 +98,7 @@ describe("AuthController", () => {
             expect(response.body.user).toBeDefined();
             expect(response.body.user.name).toBe("Test User");
             expect(response.body.user.mobileNumber).toBe("+919876543210");
-            expect(response.body.user.otplessId).toBe("test-otpless-id");
+            expect(response.body.user.firebaseUid).toBe("test-firebaseUid-id");
             expect(response.body.user.interestCategories).toEqual([
                 "coding",
                 "testing",
@@ -174,6 +174,11 @@ describe("AuthController", () => {
                 amount: 50,
                 transactionType: TransactionType.EARNED,
                 description: "Test earning",
+            });
+            expect(response.body.user.coinTransactions[1]).toMatchObject({
+                amount: 30,
+                transactionType: TransactionType.SPENT,
+                description: "Test spending",
             });
         });
     });

@@ -16,7 +16,7 @@ export type SocialLinks = Partial<Record<SocialPlatform, string>>;
 export interface IUser extends BaseDocument {
     name: string;
     mobileNumber: string;
-    otplessId?: string;
+    firebaseUid?: string;
     dodoPages: ID[];
     interestCategories: ID[];
     bankDetails: ID[];

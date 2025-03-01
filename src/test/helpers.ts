@@ -6,7 +6,7 @@ import { CreateDodoPageRequest } from "../types/dodoPage";
 export const createTestUser = async () => {
     const user = await UserModel.create({
         mobileNumber: "+919876543210",
-        otplessId: "test-otpless-id",
+        firebaseUid: "test-firebaseUid-id",
     });
     return user;
 };

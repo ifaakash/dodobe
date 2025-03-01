@@ -18,7 +18,7 @@ describe("BlockController", () => {
         // Create test user
         const user = await UserModel.create({
             mobileNumber: "+919876543210",
-            otplessId: "test-otpless-id",
+            firebaseUid: "test-firebaseUid-id",
             name: "Test User",
         });
         userId = (user._id as Types.ObjectId).toString();

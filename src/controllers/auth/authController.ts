@@ -26,17 +26,17 @@ import { ID } from "@/types/common";
 
 export class AuthController {
     /**
-     * Register user after OTPless login
+     * Register user after Firebase login
      */
     public static async registerUser(
         req: Request<{}, {}, RegisterRequest>,
         res: Response<RegisterResponse>
     ): Promise<void> {
-        const { mobileNumber, otplessId, token } = req.body;
+        const { mobileNumber, firebaseUid, token } = req.body;
 
         try {
-            // Check if user already exists with otplessId
-            const existingUser = await UserModel.findOne({ otplessId });
+            // Check if user already exists with firebaseUid
+            const existingUser = await UserModel.findOne({ firebaseUid });
 
             if (existingUser) {
                 res.status(200).json({
@@ -52,7 +52,7 @@ export class AuthController {
             // Create new user if doesn't exist
             const newUser = await UserModel.create({
                 mobileNumber,
-                otplessId,
+                firebaseUid,
             });
 
             res.status(201).json({
@@ -187,7 +187,9 @@ export class AuthController {
             const bankDetails = await BankDetailModel.find({ userId });
             const invoices = await InvoiceModel.find({ userId });
             const clientDetails = await ClientDetailModel.find({ userId });
-            const recipientDetails = await RecipientDetailModel.find({ userId });
+            const recipientDetails = await RecipientDetailModel.find({
+                userId,
+            });
 
             if (!user) {
                 res.status(404).json({
@@ -201,7 +203,7 @@ export class AuthController {
                 success: true,
                 user: {
                     id: user._id as any,
-                    otplessId: user.otplessId,
+                    firebaseUid: user.firebaseUid,
                     name: user.name,
                     mobileNumber: user.mobileNumber,
                     interestCategories: user.interestCategories.map(
@@ -237,5 +239,4 @@ export class AuthController {
             });
         }
     }
-
 }

@@ -3,7 +3,7 @@ import { AuthController } from "../controllers/auth/authController";
 
 const router: Router = Router();
 
-// Initial registration after OTPless
+// Initial registration after firebase login
 router.post("/register", AuthController.registerUser);
 
 // Complete profile with additional details
