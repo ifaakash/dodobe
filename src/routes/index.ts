@@ -7,25 +7,25 @@ import { bankDetailsRouter } from "./invoiceRoutes/bankDetails";
 import { clientRouter } from "./invoiceRoutes/client";
 import { recipientRouter } from "./invoiceRoutes/recipient";
 import { dodoCoinRouter } from "./dodoCoin";
+import { authenticateUser } from "../middleware/auth";
 
 const router: Router = Router();
 
 // API version prefix
 const v1Router = Router();
 
+// Public routes (no auth required)
 v1Router.use("/auth", authRouter);
 
-// Dodo page and its block
-v1Router.use("/dodo-pages", dodoPageRouter);
-v1Router.use("/blocks", blockRouter);
-
-// For invoice
-v1Router.use("/recipient", recipientRouter);
-v1Router.use("/client", clientRouter);
-v1Router.use("/bankDetails", bankDetailsRouter);
+// Protected routes (auth required)
+v1Router.use("/dodo-pages", authenticateUser, dodoPageRouter);
+v1Router.use("/block", authenticateUser, blockRouter);
+v1Router.use("/coins", authenticateUser, dodoCoinRouter);
+v1Router.use("/client", authenticateUser, clientRouter);
+v1Router.use("/bankDetails", authenticateUser, bankDetailsRouter);
+v1Router.use("/recipient", authenticateUser, recipientRouter);
 
 v1Router.use("/invoice", invoiceRouter);
-v1Router.use("/coins", dodoCoinRouter);
 
 // Health check
 v1Router.get("/health", (req, res) => {

@@ -1,6 +1,6 @@
-import { coinTransactionSchema } from "@/models/dodoCoin/schema";
-import { UserModel } from "@/models/user/model";
-import { ID } from "@/types/common";
+import { coinTransactionSchema } from "../models/dodoCoin/schema";
+import { UserModel } from "../models/user/model";
+import { ID } from "../types/common";
 
 // Register all middlewares
 export const registerCoinTransactionMiddleware = () => {

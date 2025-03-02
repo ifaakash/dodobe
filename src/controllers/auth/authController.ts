@@ -17,13 +17,12 @@ import {
     RegisterResponse,
     UpdateUserDetailsResponseError,
 } from "../../types/auth";
-import mongoose from "mongoose";
-import { Types } from "mongoose";
+import mongoose, { Types } from "mongoose";
 import { IUserInterestCategory, IDodoPage } from "../../types/user";
 import { FileManager } from "../../utils/fileManager";
-import { ICoinTransaction } from "@/types/dodoCoin";
-import { ID } from "@/types/common";
-
+import { ICoinTransaction } from "../../types/dodoCoin";
+import { ID } from "../../types/common";
+import { generateToken } from "../../utils/jwt";
 export class AuthController {
     /**
      * Register user after Firebase login
@@ -32,17 +31,20 @@ export class AuthController {
         req: Request<{}, {}, RegisterRequest>,
         res: Response<RegisterResponse>
     ): Promise<void> {
-        const { mobileNumber, firebaseUid, token } = req.body;
+        const { mobileNumber, firebaseUid } = req.body;
 
         try {
             // Check if user already exists with firebaseUid
             const existingUser = await UserModel.findOne({ firebaseUid });
 
             if (existingUser) {
+                const token = generateToken(
+                    (existingUser._id as ID).toString() || ""
+                );
                 res.status(200).json({
                     success: true,
                     message: "User already exists",
-                    userId: existingUser._id as Types.ObjectId,
+                    userId: existingUser._id as ID,
                     isNewUser: false,
                     token,
                 });
@@ -55,12 +57,14 @@ export class AuthController {
                 firebaseUid,
             });
 
+            const token = generateToken((newUser._id as ID).toString() || "");
+
             res.status(201).json({
                 success: true,
                 message: "User registered successfully",
-                userId: newUser._id as Types.ObjectId,
+                userId: newUser._id as ID,
                 isNewUser: true,
-                token: token,
+                token,
             });
         } catch (error) {
             logger.error("Error in registerUser:", error);
@@ -106,7 +110,7 @@ export class AuthController {
             )) as IUserInterestCategory[];
 
             user.interestCategories = interestCategories.map(
-                (ic) => ic._id as Types.ObjectId
+                (ic) => ic._id as ID
             );
 
             // Generate unique URL for DodoPage
@@ -135,7 +139,7 @@ export class AuthController {
                 socialLinks,
             })) as IDodoPage;
 
-            user.dodoPages = [dodoPage._id as Types.ObjectId];
+            user.dodoPages = [dodoPage._id as ID];
             await user.save();
 
             res.status(200).json({
