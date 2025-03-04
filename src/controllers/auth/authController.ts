@@ -23,6 +23,7 @@ import { FileManager } from "../../utils/fileManager";
 import { ICoinTransaction } from "../../types/dodoCoin";
 import { ID } from "../../types/common";
 import { generateToken } from "../../utils/jwt";
+import { IBankDetail, IClientDetail, IInvoice, IRecipientDetail } from "@/types/invoice";
 export class AuthController {
     /**
      * Register user after Firebase login
@@ -186,14 +187,22 @@ export class AuthController {
                 .populate<{ coinTransactions: ICoinTransaction[] }>({
                     path: "coinTransactions",
                     select: "_id amount transactionType description createdAt",
+                }).populate<{ bankDetails: IBankDetail[] }>({
+                    path: "bankDetails",
+                }).populate<{ invoices: IInvoice[] }>({
+                    path: "invoices",
+                }).populate<{ clientDetails: IClientDetail[] }>({
+                    path: "clientDetails",
+                }).populate<{ recipientDetails: IRecipientDetail[] }>({
+                    path: "recipientDetails",
                 });
-
-            const bankDetails = await BankDetailModel.find({ userId });
-            const invoices = await InvoiceModel.find({ userId });
-            const clientDetails = await ClientDetailModel.find({ userId });
-            const recipientDetails = await RecipientDetailModel.find({
-                userId,
-            });
+                
+            // const bankDetails = await BankDetailModel.find({ userId });
+            // const invoices = await InvoiceModel.find({ userId });
+            // const clientDetails = await ClientDetailModel.find({ userId });
+            // const recipientDetails = await RecipientDetailModel.find({
+            //     userId,
+            // });
 
             if (!user) {
                 res.status(404).json({

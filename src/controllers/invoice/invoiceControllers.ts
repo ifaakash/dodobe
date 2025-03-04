@@ -260,7 +260,7 @@ export class InvoiceController {
   ) {
     try {
       const { userId, timeFrame } = req.body;
-
+  
       if (!userId || !timeFrame) {
         res.status(400).json({
           success: false,
@@ -268,11 +268,11 @@ export class InvoiceController {
         });
         return;
       }
-
+  
       // Determine the start date based on the timeframe
       let startDate: Date | null = null;
       const currentDate = new Date();
-
+  
       switch (timeFrame.toLowerCase()) {
         case "week":
           startDate = new Date();
@@ -296,87 +296,74 @@ export class InvoiceController {
           });
           return;
       }
-
+  
       // Fetch invoices for the user
       let invoices = await InvoiceModel.find({ userId });
-
+  
       // Filter invoices by timeframe if startDate is defined
       if (startDate) {
         invoices = invoices.filter(
           (invoice) => new Date(invoice.createdAt) >= startDate
         );
       }
-
-      // Filter paid invoices
-      const paidInvoices = invoices.filter(
-        (invoice) => invoice.status === "paid"
-      );
-
-      // Filter due invoices
-      const dueInvoices = invoices.filter((invoice) => {
+  
+      // Get all unique item IDs from all invoices
+      const allItemIds = [...new Set(invoices.flatMap(invoice => invoice.items))];
+      
+      // Fetch all items in a single query
+      const items = await ItemModel.find({ _id: { $in: allItemIds } });
+      
+      // Create a map for quick item lookup
+      const itemMap = new Map(items.map(item => [item._id.toString(), item]));
+  
+      // Filter invoices by status
+      const paidInvoices = invoices.filter(invoice => invoice.status === "paid");
+      const unpaidInvoices = invoices.filter(invoice => invoice.status !== "paid");
+      
+      // Filter overdue invoices (only consider unpaid ones)
+      const dueInvoices = unpaidInvoices.filter(invoice => {
         const dueDate = new Date(invoice.dueDate);
         return currentDate > dueDate;
       });
-
-      // Calculate outstanding amount
+      
+      // Filter pending invoices (not paid, not overdue)
+      const pendingInvoices = unpaidInvoices.filter(invoice => {
+        const dueDate = new Date(invoice.dueDate);
+        return currentDate <= dueDate;
+      });
+  
+      // Calculate amounts
       let outStandingAmount = 0;
       let pendingAmount = 0;
       let paidAmount = 0;
-
-      // Calculate outstanding amount for due invoices
-      for (const invoice of dueInvoices) {
-        for (const itemId of invoice.items) {
-          const item = await ItemModel.findById(itemId);
-
-          if (!item) {
-            res.status(400).json({
-              success: false,
-              msg: `Item with ID ${itemId} not found`,
-            });
-            return;
-          }
-
-          outStandingAmount += item.quantity * item.price;
-        }
-      }
-
-      // Calculate pending amount for non-overdue invoices
-      for (const invoice of invoices) {
-        const dueDate = new Date(invoice.dueDate);
-
-        if (currentDate <= dueDate) {
-          for (const itemId of invoice.items) {
-            const item = await ItemModel.findById(itemId);
-
-            if (!item) {
-              res.status(400).json({
-                success: false,
-                msg: `Item with ID ${itemId} not found`,
-              });
-              return;
-            }
-
-            pendingAmount += item.quantity * item.price;
-          }
-        }
-      }
-
-      for (const invoice of paidInvoices) {
-        const items = await ItemModel.find({ _id: { $in: invoice.items } });
-        paidAmount += items.reduce((total, item) => {
-          return total + item.quantity * item.price;
-        }, 0);
-      }
-
-      // Calculate total amount for all invoices
       let totalAmount = 0;
-      for (const invoice of invoices) {
-        const items = await ItemModel.find({ _id: { $in: invoice.items } });
-        totalAmount += items.reduce((total, item) => {
-          return total + item.quantity * item.price;
+  
+      // Helper function to calculate invoice total
+      const calculateInvoiceTotal = (invoice: IInvoice) => {
+        return invoice.items.reduce((total, itemId) => {
+          const item = itemMap.get(itemId.toString());
+          if (!item) return total;
+          return total + (item.quantity * item.price);
         }, 0);
+      };
+  
+      // Calculate amounts for each category
+      for (const invoice of dueInvoices) {
+        outStandingAmount += calculateInvoiceTotal(invoice);
       }
-
+  
+      for (const invoice of pendingInvoices) {
+        pendingAmount += calculateInvoiceTotal(invoice);
+      }
+  
+      for (const invoice of paidInvoices) {
+        paidAmount += calculateInvoiceTotal(invoice);
+      }
+  
+      for (const invoice of invoices) {
+        totalAmount += calculateInvoiceTotal(invoice);
+      }
+  
       // Respond with the statistics
       res.status(200).json({
         success: true,
@@ -390,25 +377,25 @@ export class InvoiceController {
           pendingAmount,
           paidAmount,
           totalAmount,
-          unpaidAmount: totalAmount - paidAmount,
         },
         msg: "Invoice stats fetched successfully",
       });
     } catch (error) {
       console.error("Error in getInvoiceStats:", error);
       res.status(500).json({
-          success: false,
-          msg: "Internal server error: " + error,
+        success: false,
+        msg: "Internal server error: " + error,
       });
     }
   }
 
-  public static async markAsPaid(
-    req: Request<{}, {}, { invoiceId: string; userId: string }>,
+
+  public static async togglePaymentStatus(
+    req: Request<{}, {}, { invoiceId: string; userId: string, paymentStatus: string }>,
     res: Response<{ success: boolean; msg: string }>
   ) {
     try {
-      const { invoiceId, userId } = req.body;
+      const { invoiceId, userId, paymentStatus } = req.body;
 
       const invoice = await InvoiceModel.findOne({
         _id: invoiceId,
@@ -422,7 +409,11 @@ export class InvoiceController {
         });
       }
 
-      invoice.status = InvoiceStatus.PAID;
+      if(paymentStatus === "paid") {
+        invoice.status = InvoiceStatus.PAID;
+      } else {
+        invoice.status = InvoiceStatus.UNPAID;
+      }
       await invoice.save();
 
       return res.status(200).json({

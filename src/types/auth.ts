@@ -1,6 +1,8 @@
 import { ID } from "./common";
 import { SocialLinks } from "./user";
 import { TransactionType } from "./dodoCoin";
+import { IClientDetail, IInvoice, IRecipientDetail } from "./invoice";
+import { IBankDetail } from "./invoice";
 export interface RegisterRequest {
     mobileNumber: string;
     firebaseUid: string;
@@ -48,10 +50,10 @@ export interface GetUserDetailsResponse {
             url: string;
             profilePicture?: string;
         }[];
-        bankDetails: ID[];
-        invoices: ID[];
-        clientDetails: ID[];
-        recipientDetails: ID[];
+        bankDetails: IBankDetail[];
+        invoices: IInvoice[];
+        clientDetails: IClientDetail[];
+        recipientDetails: IRecipientDetail[];
         dodoCoins: number;
         coinTransactions: {
             id: ID;

@@ -201,7 +201,6 @@ export interface GetInvoiceStatsResponse {
     pendingAmount: number;
     paidAmount: number;
     totalAmount: number;
-    unpaidAmount: number;
   };
   msg: string;
 }
