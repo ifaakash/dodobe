@@ -264,6 +264,7 @@ export class InvoiceController {
     try {
       const { userId, timeFrame } = req.body;
   
+  
       if (!userId || !timeFrame) {
         res.status(400).json({
           success: false,
@@ -272,9 +273,11 @@ export class InvoiceController {
         return;
       }
   
+  
       // Determine the start date based on the timeframe
       let startDate: Date | null = null;
       const currentDate = new Date();
+  
   
       switch (timeFrame.toLowerCase()) {
         case "week":
@@ -300,8 +303,10 @@ export class InvoiceController {
           return;
       }
   
+  
       // Fetch invoices for the user
       let invoices = await InvoiceModel.find({ userId });
+  
   
       // Filter invoices by timeframe if startDate is defined
       if (startDate) {
