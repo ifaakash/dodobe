@@ -16,4 +16,6 @@ router.put('/addSubHeading', InvoiceController.addSubHeading)
 
 router.put('/toggle-payment-status', InvoiceController.togglePaymentStatus)
 
+router.patch('/update-items-and-notes', InvoiceController.updateItemsAndNotes)
+
 export { router as invoiceRouter };

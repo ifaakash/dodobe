@@ -11,6 +11,8 @@ export interface IItem extends BaseDocument {
   name: string;
   quantity: number;
   price: number;
+  isDeleted?: boolean;
+  isNewItem?: boolean;
 }
 
 export interface IInvoice extends BaseDocument {
@@ -202,5 +204,78 @@ export interface GetInvoiceStatsResponse {
     paidAmount: number;
     totalAmount: number;
   };
+  msg: string;
+}
+
+// Update Client Req/Res Types
+
+export interface UpdateClientRequest {
+  id: ID;
+  name?: string;
+  email?: string;
+  state?: string;
+  city?: string;
+  address?: string;
+  zipcode?: string;
+  gst?: string;
+  pan?: string;
+}
+
+export interface UpdateClientResponse {
+  success: boolean;
+  msg: string;
+}
+
+
+// Update Recipient Req/Res Types
+
+export interface UpdateRecipientRequest {
+  id: ID;
+  name?: string;
+  email?: string;
+  state?: string;
+  city?: string;
+  address?: string;
+  zipcode?: string;
+  gst?: string;
+  pan?: string;
+}
+
+export interface UpdateRecipientResponse {
+  success: boolean;
+  msg: string;
+}
+
+// Update Bank Details Req/Res Types
+
+export interface UpdateBankDetailsRequest {
+  id: ID;
+  bankName?: string;
+  accountNumber?: string;
+  ifscCode?: string;
+  accountName?: string;
+  upiId?: string;
+}
+
+export interface UpdateBankDetailsResponse {
+  success: boolean;
+  msg: string;
+}
+
+
+// Update Items and Notes Req/Res Types
+
+export interface UpdateItemsAndNotesRequest {
+  id: ID;
+  items: IItem[];
+  note: string;
+  dueDate: Date;
+  tds: number;
+  gst: number;
+  discount: number;
+}
+
+export interface UpdateItemsAndNotesResponse {
+  success: boolean;
   msg: string;
 }

@@ -5,6 +5,8 @@ import {
   CreateRecipientResponse,
   GetRecipientsRequest,
   GetRecipientsResponse,
+  UpdateRecipientRequest,
+  UpdateRecipientResponse,
 } from "@/types/invoice";
 import { CreateRecipientRequest } from "@/types/invoice";
 
@@ -54,6 +56,36 @@ export class RecipientController {
         msg: "Recipients Fetched",
         data: recipients,
       });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        success: false,
+        msg: (error as Error).message,
+      });
+    }
+  }
+
+  public static async updateRecipient(
+    req: Request<{}, {}, UpdateRecipientRequest>,
+    res: Response<UpdateRecipientResponse>
+  ) {
+    try {
+      const { id } = req.body;
+
+      const updatedRecipient = await RecipientDetailModel.findByIdAndUpdate(
+        id,
+        req.body,
+        { new: true }
+      );
+      
+      if (!updatedRecipient) {
+        return res.status(404).json({
+          success: false,
+          msg: "Recipient not found",
+        });
+      }
+
+      return res.status(200).json({ success: true, msg: "Recipient Updated" });
     } catch (error) {
       console.error(error);
       return res.status(500).json({

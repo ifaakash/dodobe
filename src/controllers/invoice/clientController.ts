@@ -6,6 +6,8 @@ import {
   CreateClientResponse,
   GetClientsRequest,
   GetClientsResponse,
+  UpdateClientRequest,
+  UpdateClientResponse,
 } from "../../types/invoice";
 
 export class ClientController {
@@ -49,6 +51,35 @@ export class ClientController {
       return res
         .status(200)
         .json({ success: true, msg: "Clients Fetched", data: clients });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        success: false,
+        msg: (error as Error).message,
+      });
+    }
+  }
+
+  public static async updateClient(
+    req: Request<{}, {}, UpdateClientRequest>,
+    res: Response<UpdateClientResponse>
+  ) {
+    try {
+      const { id, ...updateData } = req.body;
+
+      const updatedClient = await ClientDetailModel.findByIdAndUpdate(
+        id,
+        updateData,
+        { new: true }
+      );
+
+      if (!updatedClient) {
+        return res.status(404).json({ success: false, msg: "Client not found" });
+      }
+
+      return res
+        .status(200)
+        .json({ success: true, msg: "Client Updated"});
     } catch (error) {
       console.error(error);
       return res.status(500).json({

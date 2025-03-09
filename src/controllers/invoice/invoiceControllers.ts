@@ -10,6 +10,8 @@ import {
   IInvoice,
   IItem,
   InvoiceStatus,
+  UpdateItemsAndNotesRequest,
+  UpdateItemsAndNotesResponse,
 } from "../../types/invoice";
 import { InvoiceModel } from "../../models/invoice/model";
 import { UserModel } from "../../models/user/model";
@@ -105,8 +107,8 @@ export class InvoiceController {
       });
     } catch (error) {
       return res.status(500).json({
-          success: false,
-          msg: "Internal server error: " + error,
+        success: false,
+        msg: "Internal server error: " + error,
       });
     }
   }
@@ -153,8 +155,8 @@ export class InvoiceController {
       const err = error as Error;
       console.log(err);
       return res.status(500).json({
-          success: false,
-          msg: "Internal server error: " + error,
+        success: false,
+        msg: "Internal server error: " + error,
       });
     }
   }
@@ -192,8 +194,8 @@ export class InvoiceController {
       });
     } catch (error) {
       return res.status(500).json({
-          success: false,
-          msg: "Internal server error: " + error,
+        success: false,
+        msg: "Internal server error: " + error,
       });
     }
   }
@@ -224,7 +226,7 @@ export class InvoiceController {
       const gstAmount = (subTotal * invoice.gst) / 100;
       const tdsAmount = (subTotal * invoice.tds) / 100;
 
-      const totalAmount = subTotal - discountAmount + gstAmount - tdsAmount;
+      const totalAmount = subTotal - discountAmount + gstAmount + tdsAmount;
 
       const finalInvoice = {
         invoiceNumber: invoice.invoiceNumber,
@@ -241,15 +243,16 @@ export class InvoiceController {
         subTotal: subTotal,
         totalAmount: totalAmount,
         subHeading: invoice.subHeading,
+        userId: invoice.userId,
       };
 
-      return res.status(200).json({ invoice: finalInvoice });
+      return res.status(200).json({ invoice: finalInvoice, success: true, msg: "Invoice fetched successfully" });
     } catch (error) {
       const err = error as Error;
       console.log(err);
       return res.status(500).json({
-          success: false,
-          msg: "Internal server error: " + error,
+        success: false,
+        msg: "Internal server error: " + error,
       });
     }
   }
@@ -260,7 +263,7 @@ export class InvoiceController {
   ) {
     try {
       const { userId, timeFrame } = req.body;
-  
+
       if (!userId || !timeFrame) {
         res.status(400).json({
           success: false,
@@ -268,11 +271,11 @@ export class InvoiceController {
         });
         return;
       }
-  
+
       // Determine the start date based on the timeframe
       let startDate: Date | null = null;
       const currentDate = new Date();
-  
+
       switch (timeFrame.toLowerCase()) {
         case "week":
           startDate = new Date();
@@ -296,48 +299,48 @@ export class InvoiceController {
           });
           return;
       }
-  
+
       // Fetch invoices for the user
       let invoices = await InvoiceModel.find({ userId });
-  
+
       // Filter invoices by timeframe if startDate is defined
       if (startDate) {
         invoices = invoices.filter(
           (invoice) => new Date(invoice.createdAt) >= startDate
         );
       }
-  
+
       // Get all unique item IDs from all invoices
       const allItemIds = [...new Set(invoices.flatMap(invoice => invoice.items))];
-      
+
       // Fetch all items in a single query
       const items = await ItemModel.find({ _id: { $in: allItemIds } });
-      
+
       // Create a map for quick item lookup
       const itemMap = new Map(items.map(item => [item._id.toString(), item]));
-  
+
       // Filter invoices by status
       const paidInvoices = invoices.filter(invoice => invoice.status === "paid");
       const unpaidInvoices = invoices.filter(invoice => invoice.status !== "paid");
-      
+
       // Filter overdue invoices (only consider unpaid ones)
       const dueInvoices = unpaidInvoices.filter(invoice => {
         const dueDate = new Date(invoice.dueDate);
         return currentDate > dueDate;
       });
-      
+
       // Filter pending invoices (not paid, not overdue)
       const pendingInvoices = unpaidInvoices.filter(invoice => {
         const dueDate = new Date(invoice.dueDate);
         return currentDate <= dueDate;
       });
-  
+
       // Calculate amounts
       let outStandingAmount = 0;
       let pendingAmount = 0;
       let paidAmount = 0;
       let totalAmount = 0;
-  
+
       // Helper function to calculate invoice total
       const calculateInvoiceTotal = (invoice: IInvoice) => {
         return invoice.items.reduce((total, itemId) => {
@@ -346,24 +349,24 @@ export class InvoiceController {
           return total + (item.quantity * item.price);
         }, 0);
       };
-  
+
       // Calculate amounts for each category
       for (const invoice of dueInvoices) {
         outStandingAmount += calculateInvoiceTotal(invoice);
       }
-  
+
       for (const invoice of pendingInvoices) {
         pendingAmount += calculateInvoiceTotal(invoice);
       }
-  
+
       for (const invoice of paidInvoices) {
         paidAmount += calculateInvoiceTotal(invoice);
       }
-  
+
       for (const invoice of invoices) {
         totalAmount += calculateInvoiceTotal(invoice);
       }
-  
+
       // Respond with the statistics
       res.status(200).json({
         success: true,
@@ -409,7 +412,7 @@ export class InvoiceController {
         });
       }
 
-      if(paymentStatus === "paid") {
+      if (paymentStatus === "paid") {
         invoice.status = InvoiceStatus.PAID;
       } else {
         invoice.status = InvoiceStatus.UNPAID;
@@ -422,8 +425,66 @@ export class InvoiceController {
       });
     } catch (error) {
       return res.status(500).json({
+        success: false,
+        msg: "Internal server error: " + error,
+      });
+    }
+  }
+
+  public static async updateItemsAndNotes(
+    req: Request<{}, {}, UpdateItemsAndNotesRequest>,
+    res: Response<UpdateItemsAndNotesResponse>
+  ) {
+    try {
+      const { id, items, note, dueDate, tds, gst, discount } = req.body;
+
+      const invoice = await InvoiceModel.findById(id);
+      if (!invoice) {
+        return res.status(404).json({
           success: false,
-          msg: "Internal server error: " + error,
+          msg: "Invoice not found",
+        });
+      }
+
+      if (items?.length > 0) {
+        if (items.some(item => item.isDeleted)) {
+          await Promise.all(items.filter(item => item.isDeleted).map(async (item) => {
+            const deletedItem = await ItemModel.findByIdAndDelete(item._id);
+            // Convert ObjectIds to strings for comparison
+            invoice.items = invoice.items.filter(invoiceItem => 
+              invoiceItem._id.toString() !== deletedItem?._id.toString()
+            );
+            await invoice.save();
+          }));
+        }
+        if (items.some(item => item.isNewItem)) {
+          const newItems = await Promise.all(items.filter(item => item.isNewItem).map(async (item) => {
+            const newItem = new ItemModel({
+              ...item,
+              invoiceId: invoice._id,
+            });
+            await newItem.save();
+            return newItem;
+          }));
+          invoice.items = [...invoice.items, ...newItems];
+          await invoice.save();
+        }
+      }
+
+
+        invoice.note = note;
+        invoice.dueDate = dueDate;
+        invoice.tds = tds;
+        invoice.gst = gst;
+        invoice.discount = discount;
+      
+      await invoice.save();
+
+      return res.status(200).json({ success: true, msg: "Invoice updated" });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        msg: "Internal server error: " + error,
       });
     }
   }

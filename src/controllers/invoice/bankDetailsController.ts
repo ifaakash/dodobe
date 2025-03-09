@@ -1,7 +1,7 @@
 import { Response, Request } from "express";
 import { BankDetailModel } from "../../models/invoice/model";
 import { UserModel } from "../../models/user/model";
-import { IBankDetail, CreateBankDetailsRequest, CreateBankDetailsResponse } from "../../types/invoice";
+import { IBankDetail, CreateBankDetailsRequest, CreateBankDetailsResponse, UpdateBankDetailsRequest, UpdateBankDetailsResponse } from "../../types/invoice";
 
 
 export class BankDetailsController {
@@ -17,7 +17,7 @@ export class BankDetailsController {
         return res.status(404).json({ success: false, msg: "User not found" });
       }
 
-      const bankDetails:IBankDetail = await BankDetailModel.create(req.body);
+      const bankDetails: IBankDetail = await BankDetailModel.create(req.body);
 
       user.bankDetails.push(bankDetails._id as any);
       await user.save();
@@ -26,6 +26,30 @@ export class BankDetailsController {
       return res
         .status(201)
         .json({ success: true, msg: "Bank Details Created", data: bankDetails });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ success: false, msg: (error as Error).message });
+    }
+  }
+
+  public static async updateBankDetails(
+    req: Request<{}, {}, UpdateBankDetailsRequest>,
+    res: Response<UpdateBankDetailsResponse>
+  ) {
+    try {
+      const { id } = req.body;
+
+      const updatedBankDetails = await BankDetailModel.findByIdAndUpdate(
+        id,
+        req.body,
+        { new: true }
+      );
+
+      if (!updatedBankDetails) {
+        return res.status(404).json({ success: false, msg: "Bank Details not found" });
+      }
+
+      return res.status(200).json({ success: true, msg: "Bank Details Updated" });
     } catch (error) {
       console.error(error);
       return res.status(500).json({ success: false, msg: (error as Error).message });

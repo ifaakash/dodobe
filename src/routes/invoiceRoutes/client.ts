@@ -7,4 +7,6 @@ router.post('/create', ClientController.createClient);
 
 router.post('/getClients', ClientController.getClients)
 
+router.patch('/update', ClientController.updateClient);
+
 export { router as clientRouter };
