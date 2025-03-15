@@ -226,7 +226,7 @@ export class InvoiceController {
       const gstAmount = (subTotal * invoice.gst) / 100;
       const tdsAmount = (subTotal * invoice.tds) / 100;
 
-      const totalAmount = subTotal - discountAmount + gstAmount + tdsAmount;
+      const totalAmount = subTotal - discountAmount + gstAmount - tdsAmount;
 
       const finalInvoice = {
         invoiceNumber: invoice.invoiceNumber,
