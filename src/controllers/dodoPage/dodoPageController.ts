@@ -101,8 +101,8 @@ export class DodoPageController {
 
       logger.error("Error in createDodoPage:", error);
       res.status(500).json({
-          success: false,
-          message: "Internal server error: " + error,
+        success: false,
+        message: "Internal server error: " + error,
       });
     }
   }
@@ -229,8 +229,8 @@ export class DodoPageController {
     } catch (error) {
       logger.error("Error in getDodoPageByUrl:", error);
       res.status(500).json({
-          success: false,
-          message: "Internal server error: " + error,
+        success: false,
+        message: "Internal server error: " + error,
       });
     }
   }
@@ -244,7 +244,7 @@ export class DodoPageController {
   ): Promise<void> {
     const { id, userId } = req.body;
 
-    
+
     const user = await UserModel.findById(userId);
     if (!user) {
       res.status(404).json({
@@ -340,8 +340,8 @@ export class DodoPageController {
     } catch (error) {
       logger.error("Error in updateDodoPage:", error);
       res.status(500).json({
-          success: false,
-          message: "Internal server error: " + error,
+        success: false,
+        message: "Internal server error: " + error,
       });
     }
   }
@@ -372,8 +372,8 @@ export class DodoPageController {
     } catch (error) {
       logger.error("Error in getUserDodoPages:", error);
       res.status(500).json({
-          success: false,
-          message: "Internal server error: " + error,
+        success: false,
+        message: "Internal server error: " + error,
       });
     }
   }
@@ -413,8 +413,8 @@ export class DodoPageController {
     } catch (error) {
       logger.error("Error in deleteDodoPage:", error);
       res.status(500).json({
-          success: false,
-          message: "Internal server error: " + error,
+        success: false,
+        message: "Internal server error: " + error,
       });
     }
   }
@@ -454,8 +454,49 @@ export class DodoPageController {
     } catch (error) {
       logger.error("Error in getDodoPageById:", error);
       res.status(500).json({
+        success: false,
+        message: "Internal server error: " + error,
+      });
+    }
+  }
+
+  /**
+   * Update blocks of a DodoPage
+   */
+  public static async updateDodoPageBlocks(
+    req: Request<{ pageId: string }, {}, { blocks: any[] }>,
+    res: Response
+  ): Promise<void> {
+    const { pageId } = req.params;
+    const { blocks } = req.body;
+
+    try {
+      const dodoPage = await DodoPageModel.findById(pageId);
+      if (!dodoPage) {
+        res.status(404).json({
           success: false,
-          message: "Internal server error: " + error,
+          message: "DodoPage not found",
+        });
+        return;
+      }
+
+      // Replace the existing blocks with the new ones
+      dodoPage.blocks = blocks;
+      await dodoPage.save();
+
+      res.status(200).json({
+        success: true,
+        message: "Blocks updated successfully",
+        dodoPage: {
+          id: dodoPage._id,
+          blocks: dodoPage.blocks,
+        },
+      });
+    } catch (error) {
+      logger.error("Error in updateDodoPageBlocks:", error);
+      res.status(500).json({
+        success: false,
+        message: "Internal server error: " + error,
       });
     }
   }

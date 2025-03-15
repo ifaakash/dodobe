@@ -39,4 +39,7 @@ router.patch(
 // Delete DodoPage
 router.delete("/delete/:pageId", DodoPageController.deleteDodoPage);
 
+// Update DodoPage blocks
+router.patch("/update-blocks/:pageId", DodoPageController.updateDodoPageBlocks);
+
 export { router as dodoPageRouter };
