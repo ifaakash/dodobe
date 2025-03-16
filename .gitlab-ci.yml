@@ -54,7 +54,6 @@ stop_existing_infra:
     - apt-get update && apt-get install -y --fix-broken
     - apt-get clean && rm -rf /var/lib/apt/lists/*
     - rm -rf /var/lib/dpkg/lock* /var/cache/apt/archives/lock
-    - apt-get install -y libkrb5-3
     - echo "$SSH_PRIVATE_KEY" > dodokey.pem
     - chmod 600 dodokey.pem
     - ssh -o StrictHostKeyChecking=no -i dodokey.pem ubuntu@ec2-13-202-63-227.ap-south-1.compute.amazonaws.com "docker ps && docker rm -f \$(docker stop \$(docker ps -a -q))"
