@@ -15,7 +15,7 @@ cache:
     - node_modules/
 
 # start the runner for image building foundation
-.start_ec2:
+start_ec2:
   stage: runner_up
   image: python:3.9
   script:
@@ -81,10 +81,11 @@ deprecated_image:
     - docker images registry.gitlab.com/dodo1604703/dodobe/feat/refactor --format '{{.ID}} {{.Tag}}' | grep -v ' latest$' | awk '{print $1}' | xargs -r docker rmi -f || true
     - echo "Updated list of image in RUNNER instance"
     - docker images
-# # stop the runner after deployment
-# stop_ec2:
-#   stage: runner_down
-#   image: python:3.9
-#   script:
-#     - pip install boto3
-#     - python stop_ec2.py
+
+# stop the runner after deployment
+stop_ec2:
+  stage: runner_down
+  image: python:3.9
+  script:
+    - pip install boto3
+    - python stop_ec2.py
