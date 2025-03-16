@@ -76,11 +76,11 @@ deprecated_image:
   tags:
     - dodo-group-runner
   script:
-    - sudo docker image prune -a --filter "until=48h" -f
+    - docker image prune -a --filter "until=48h" -f
     #   - sudo docker rmi -f $(sudo docker images "registry.gitlab.com/dodo1604703/dodobe/feat/refactor:*" -q | grep -v $(sudo docker images "registry.gitlab.com/dodo1604703/dodobe/feat/refactor:latest" -q))
-    - sudo docker images registry.gitlab.com/dodo1604703/dodobe/feat/refactor --format '{{.ID}} {{.Tag}}' | grep -v ' latest$' | awk '{print $1}' | xargs -r sudo docker rmi -f || true
+    - docker images registry.gitlab.com/dodo1604703/dodobe/feat/refactor --format '{{.ID}} {{.Tag}}' | grep -v ' latest$' | awk '{print $1}' | xargs -r docker rmi -f || true
     - echo "Updated list of image in RUNNER instance"
-    - sudo docker images
+    - docker images
 # # stop the runner after deployment
 # stop_ec2:
 #   stage: runner_down
