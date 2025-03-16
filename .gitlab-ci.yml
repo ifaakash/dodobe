@@ -61,7 +61,8 @@ start_new_infra:
   tags:
     - dodo-group-runner
   script:
-    - sudo su
+    - apt update && apt install -y sudo
+    - sudo whoami # Testing
     - echo "$SSH_PRIVATE_KEY" > dodokey.pem
     - pwd && ls
     - chmod 600 dodokey.pem
