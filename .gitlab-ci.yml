@@ -7,7 +7,7 @@ stages:
 
 variables:
   AWS_DEFAULT_REGION: "ap-south-1" # mumbai region for AWS
-  IMAGE_NAME: "registry.gitlab.com/dodo1604703/dodobe/feat/refactor:latest"
+  IMAGE_NAME: "registry.gitlab.com/dodo1604703/dodobe/feat/refactor"
 
 # cache node modules for faster builds
 cache:
@@ -37,9 +37,9 @@ build-application:
     - git pull
     - git checkout feat/refactor
     - docker build -t $IMAGE_NAME .
-    - docker tag $IMAGE_NAME $IMAGE_NAME:$CI_COMMIT_SHORT_SHA
-    - docker tag $IMAGE_NAME $IMAGE_NAME:$CI_COMMIT_REF_NAME
-    - docker tag $IMAGE_NAME $IMAGE_NAME:$(date +%Y%m%d-%H%M%S)
+    - docker tag $IMAGE_NAME:latest $IMAGE_NAME:$CI_COMMIT_SHORT_SHA
+    - docker tag $IMAGE_NAME:latest $IMAGE_NAME:$CI_COMMIT_REF_NAME
+    - docker tag $IMAGE_NAME:latest $IMAGE_NAME:$(date +%Y%m%d-%H%M%S)
     - docker images
     - docker push registry.gitlab.com/dodo1604703/dodobe/feat/refactor:latest
 
