@@ -38,7 +38,6 @@ build-application:
     - git checkout feat/refactor
     - docker build -t $IMAGE_NAME .
     - docker tag $IMAGE_NAME:latest $IMAGE_NAME:$CI_COMMIT_SHORT_SHA
-    - docker tag $IMAGE_NAME:latest $IMAGE_NAME:$CI_COMMIT_REF_NAME
     - docker tag $IMAGE_NAME:latest $IMAGE_NAME:$(date +%Y%m%d-%H%M%S)
     - docker images
     - docker push registry.gitlab.com/dodo1604703/dodobe/feat/refactor:latest
