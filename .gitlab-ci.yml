@@ -32,6 +32,7 @@ build-application:
     - unset DOCKER_HOST
     - docker login $GITLAB_REGISTRY -u $GITLAB_USERNAME -p $REGISTRY_PASSWORD
   script:
+    - apt install -y git
     - git checkout feat/refactor
     - git pull
     - docker build -t $IMAGE_NAME .
