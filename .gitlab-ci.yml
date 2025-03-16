@@ -33,8 +33,8 @@ build-application:
     - unset DOCKER_HOST
     - docker login $GITLAB_REGISTRY -u $GITLAB_USERNAME -p $REGISTRY_PASSWORD
   script:
-    - git branch -a && git branch -r
-    - git branch --set-upstream-to=origin/feat/refactor feat/refactor
+    # - git branch -a && git branch -r
+    - git branch --set-upstream-to=origin/feat/refactor origin/feat/refactor
     - git pull
     - git checkout feat/refactor
     - docker build -t $IMAGE_NAME .
