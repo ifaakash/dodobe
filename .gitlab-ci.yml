@@ -35,12 +35,12 @@ build-application:
   script:
     - git checkout -b feat/refactor origin/feat/refactor
     - git pull
-    - docker build -t $IMAGE_NAME .
-    # - docker tag $IMAGE_NAME:latest $IMAGE_NAME:$CI_COMMIT_SHORT_SHA
-    # - docker tag $IMAGE_NAME:latest $IMAGE_NAME:$(date +%Y%m%d-%H%M%S)
-    - docker images
-    - docker push registry.gitlab.com/dodo1604703/dodobe/feat/refactor:latest
-    # - docker push $IMAGE_NAME:$CI_COMMIT_SHORT_SHA
+    - sudo docker build -t $IMAGE_NAME .
+    # - sudo docker tag $IMAGE_NAME:latest $IMAGE_NAME:$CI_COMMIT_SHORT_SHA
+    # - sudo docker tag $IMAGE_NAME:latest $IMAGE_NAME:$(date +%Y%m%d-%H%M%S)
+    - sudo docker images
+    - sudo docker push registry.gitlab.com/dodo1604703/dodobe/feat/refactor:latest
+    # - sudo docker push $IMAGE_NAME:$CI_COMMIT_SHORT_SHA
 
 # stop existing containers with {latest-1} code structure
 stop_existing_infra:
@@ -53,7 +53,7 @@ stop_existing_infra:
   script:
     - echo "$SSH_PRIVATE_KEY" > dodokey.pem
     - chmod 600 dodokey.pem
-    - ssh -o StrictHostKeyChecking=no -i dodokey.pem ubuntu@ec2-13-202-63-227.ap-south-1.compute.amazonaws.com "docker ps && docker rm -f \$(docker stop \$(docker ps -a -q))"
+    - ssh -o StrictHostKeyChecking=no -i dodokey.pem ubuntu@ec2-13-202-63-227.ap-south-1.compute.amazonaws.com "sudo docker ps && sudo docker rm -f \$(sudo docker stop \$(sudo docker ps -a -q))"
   artifacts:
     paths:
       - dodokey.pem
@@ -68,7 +68,7 @@ start_new_infra:
     - apt update && apt install -y sudo openssh-client
     - sudo whoami # Testing
     - echo "$SSH_PRIVATE_KEY" > dodokey.pem
-    - ssh -o StrictHostKeyChecking=no -i dodokey.pem ubuntu@ec2-13-202-63-227.ap-south-1.compute.amazonaws.com "docker images -q | grep . && docker rmi -f \$(docker images -aq) || echo 'No images to remove'; docker pull registry.gitlab.com/dodo1604703/dodobe/feat/refactor:latest && docker images && docker run -d -p 3001:3002 -e AWS_REGION=$AWS_REGION -e S3_BUCKET_NAME=$S3_BUCKET_NAME -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_S3 -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_S3 --restart=always registry.gitlab.com/dodo1604703/dodobe/feat/refactor:latest"
+    - ssh -o StrictHostKeyChecking=no -i dodokey.pem ubuntu@ec2-13-202-63-227.ap-south-1.compute.amazonaws.com "sudo docker images -q | grep . && sudo docker rmi -f \$(sudo docker images -aq) || echo 'No images to remove'; sudo docker pull registry.gitlab.com/dodo1604703/dodobe/feat/refactor:latest && sudo docker images && sudo docker run -d -p 3001:3002 -e AWS_REGION=$AWS_REGION -e S3_BUCKET_NAME=$S3_BUCKET_NAME -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_S3 -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_S3 --restart=always registry.gitlab.com/dodo1604703/dodobe/feat/refactor:latest"
 
 # remove image older than 48h from runner
 deprecated_image:
@@ -76,11 +76,11 @@ deprecated_image:
   tags:
     - dodo-group-runner
   script:
-    - docker image prune -a --filter "until=48h" -f
-    #   - docker rmi -f $(docker images "registry.gitlab.com/dodo1604703/dodobe/feat/refactor:*" -q | grep -v $(docker images "registry.gitlab.com/dodo1604703/dodobe/feat/refactor:latest" -q))
-    - docker images registry.gitlab.com/dodo1604703/dodobe/feat/refactor --format '{{.ID}} {{.Tag}}' | grep -v ' latest$' | awk '{print $1}' | xargs -r docker rmi -f || true
+    - sudo docker image prune -a --filter "until=48h" -f
+    #   - sudo docker rmi -f $(sudo docker images "registry.gitlab.com/dodo1604703/dodobe/feat/refactor:*" -q | grep -v $(sudo docker images "registry.gitlab.com/dodo1604703/dodobe/feat/refactor:latest" -q))
+    - sudo docker images registry.gitlab.com/dodo1604703/dodobe/feat/refactor --format '{{.ID}} {{.Tag}}' | grep -v ' latest$' | awk '{print $1}' | xargs -r sudo docker rmi -f || true
     - echo "Updated list of image in RUNNER instance"
-    - docker images
+    - sudo docker images
 # # stop the runner after deployment
 # stop_ec2:
 #   stage: runner_down
