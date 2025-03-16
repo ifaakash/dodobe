@@ -34,7 +34,7 @@ build-application:
     - docker login $GITLAB_REGISTRY -u $GITLAB_USERNAME -p $REGISTRY_PASSWORD
   script:
     # - git checkout -b feat/refactor origin/feat/refactor
-    - git pull
+    - git pull origin/feat/refactor feat/refactor
     - sudo docker build -t $IMAGE_NAME .
     # - sudo docker tag $IMAGE_NAME:latest $IMAGE_NAME:$CI_COMMIT_SHORT_SHA
     # - sudo docker tag $IMAGE_NAME:latest $IMAGE_NAME:$(date +%Y%m%d-%H%M%S)
