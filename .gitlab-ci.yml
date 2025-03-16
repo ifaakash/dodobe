@@ -63,7 +63,7 @@ start_new_infra:
   script:
     - echo "$SSH_PRIVATE_KEY" > dodokey.pem
     - chmod 600 dodokey.pem
-    - /bin/ssh -o StrictHostKeyChecking=no -i dodokey.pem ubuntu@ec2-13-202-63-227.ap-south-1.compute.amazonaws.com
+    - /usr/bin/ssh -o StrictHostKeyChecking=no -i dodokey.pem ubuntu@ec2-13-202-63-227.ap-south-1.compute.amazonaws.com
     # - ssh -o StrictHostKeyChecking=no -i dodokey.pem ubuntu@ec2-13-202-63-227.ap-south-1.compute.amazonaws.com "sudo docker images -q | grep . && sudo docker rmi -f \$(sudo docker images -aq) || echo 'No images to remove'; sudo docker pull registry.gitlab.com/dodo1604703/dodobe/feat/refactor:latest && sudo docker images && sudo docker run -d -p 3001:3002 -e AWS_REGION=$AWS_REGION -e S3_BUCKET_NAME=$S3_BUCKET_NAME -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_S3 -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_S3 --restart=always registry.gitlab.com/dodo1604703/dodobe/feat/refactor:latest"
 # # remove image older than 48h from runner
 # deprecated_image:
