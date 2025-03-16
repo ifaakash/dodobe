@@ -28,6 +28,7 @@ build-application:
   stage: build
   tags:
     - dodo-group-runner
+  image: debian:latest
   before_script:
     - unset DOCKER_HOST
     - docker login $GITLAB_REGISTRY -u $GITLAB_USERNAME -p $REGISTRY_PASSWORD
