@@ -87,7 +87,7 @@ const invoiceSchema = new Schema<IInvoice>(
         note: String,
         date: { type: Date, required: true },
         dueDate: { type: Date, required: true },
-        gst: { type: Number, required: true },
+        gst: { type: Number },
         tds: { type: Number },
         status: {
             type: String,

@@ -16,4 +16,6 @@ router.put('/addSubHeading', InvoiceController.addSubHeading)
 
 router.put('/mark-as-paid', InvoiceController.markAsPaid)
 
+router.put('/toggle-payment-status', InvoiceController.togglePaymentStatus)
+
 export { router as invoiceRouter };
