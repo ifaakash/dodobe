@@ -105,8 +105,8 @@ export class InvoiceController {
       });
     } catch (error) {
       return res.status(500).json({
-          success: false,
-          msg: "Internal server error: " + error,
+        success: false,
+        msg: "Internal server error: " + error,
       });
     }
   }
@@ -153,8 +153,8 @@ export class InvoiceController {
       const err = error as Error;
       console.log(err);
       return res.status(500).json({
-          success: false,
-          msg: "Internal server error: " + error,
+        success: false,
+        msg: "Internal server error: " + error,
       });
     }
   }
@@ -192,8 +192,8 @@ export class InvoiceController {
       });
     } catch (error) {
       return res.status(500).json({
-          success: false,
-          msg: "Internal server error: " + error,
+        success: false,
+        msg: "Internal server error: " + error,
       });
     }
   }
@@ -248,8 +248,8 @@ export class InvoiceController {
       const err = error as Error;
       console.log(err);
       return res.status(500).json({
-          success: false,
-          msg: "Internal server error: " + error,
+        success: false,
+        msg: "Internal server error: " + error,
       });
     }
   }
@@ -305,6 +305,12 @@ export class InvoiceController {
         invoices = invoices.filter(
           (invoice) => new Date(invoice.createdAt) >= startDate
         );
+      }
+      if (invoices.length === 0) {
+        return res.status(200).json({
+          success: true,
+          msg: "Not Enough Data to show stats",
+        });
       }
 
       // Filter paid invoices
@@ -397,8 +403,8 @@ export class InvoiceController {
     } catch (error) {
       console.error("Error in getInvoiceStats:", error);
       res.status(500).json({
-          success: false,
-          msg: "Internal server error: " + error,
+        success: false,
+        msg: "Internal server error: " + error,
       });
     }
   }
@@ -431,8 +437,47 @@ export class InvoiceController {
       });
     } catch (error) {
       return res.status(500).json({
+        success: false,
+        msg: "Internal server error: " + error,
+      });
+    }
+  }
+
+  public static async togglePaymentStatus(
+    req: Request<{}, {}, { invoiceId: string; userId: string, paymentStatus: string }>,
+    res: Response<{ success: boolean; msg: string }>
+  ) {
+    try {
+      const { invoiceId, userId, paymentStatus } = req.body;
+
+      const invoice = await InvoiceModel.findOne({
+        _id: invoiceId,
+        userId: userId,
+      });
+
+      if (!invoice) {
+        return res.status(404).json({
           success: false,
-          msg: "Internal server error: " + error,
+          msg: "Invoice not found",
+        });
+      }
+
+      invoice.status = InvoiceStatus.PAID;
+      if (paymentStatus === "paid") {
+        invoice.status = InvoiceStatus.PAID;
+      } else {
+        invoice.status = InvoiceStatus.UNPAID;
+      }
+      await invoice.save();
+
+      return res.status(200).json({
+        success: true,
+        msg: `Invoice marked as ${paymentStatus}`,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        msg: "Internal server error: " + error,
       });
     }
   }
