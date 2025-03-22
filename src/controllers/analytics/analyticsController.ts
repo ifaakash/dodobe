@@ -138,71 +138,101 @@ export class AnalyticsController {
     }
 
     /**
-     * Record time spent on page via Beacon API
+     * Record time spent on a page
+     * This endpoint is designed to work with the Beacon API
      */
     public static async recordTimeSpent(
-        req: Request,
+        req: Request<{}, {}, RecordTimeSpentRequest>,
         res: Response
     ): Promise<void> {
         try {
-            // For Beacon API, we may not be able to send a response
-            // as the browser might have already unloaded the page
-
-            // Parse the request body
+            // Handle both JSON and raw buffer data (for Beacon API)
             let data: RecordTimeSpentRequest;
-            if (Buffer.isBuffer(req.body)) {
-                // Handle raw buffer from Beacon API
-                data = JSON.parse(req.body.toString());
-            } else {
-                // Handle already parsed JSON
+
+            if (req.headers["content-type"]?.includes("application/json")) {
                 data = req.body;
+            } else {
+                // For Beacon API which might send raw data
+                const rawBody = req.body.toString();
+                try {
+                    data = JSON.parse(rawBody);
+                } catch (e) {
+                    logger.error(
+                        "Error parsing raw body in recordTimeSpent:",
+                        e
+                    );
+                    res.status(400).json({
+                        success: false,
+                        message: "Invalid request format",
+                    });
+                    return;
+                }
             }
 
-            const { dodoPageId, timeSpent, visitorId, sessionId } = data;
+            const { dodoPageId, visitorId, timeSpent, sessionId } = data;
 
-            // Validate required fields
-            if (!dodoPageId || !timeSpent || !visitorId) {
-                logger.error("Missing required fields for timeSpent tracking");
-                res.status(400).end();
+            // Check if the DodoPage exists
+            const dodoPage = await DodoPageModel.findById(dodoPageId);
+            if (!dodoPage) {
+                res.status(404).json({
+                    success: false,
+                    message: "DodoPage not found",
+                });
                 return;
             }
 
-            // Find existing page view to update duration
+            // If sessionId is provided, try to update an existing page view
             if (sessionId) {
-                await PageViewModel.findOneAndUpdate(
-                    {
+                const existingPageView = await PageViewModel.findOne({
+                    dodoPageId,
+                    visitorId,
+                    sessionId,
+                });
+
+                if (existingPageView) {
+                    existingPageView.duration = timeSpent;
+                    await existingPageView.save();
+
+                    logger.info({
+                        type: "analytics",
+                        action: "update_time_spent",
                         dodoPageId,
                         visitorId,
                         sessionId,
-                    },
-                    {
-                        $set: { duration: timeSpent },
-                    }
-                );
-            } else {
-                // Create a new record if no session ID provided
-                await PageViewModel.create({
-                    dodoPageId,
-                    visitorId,
-                    duration: timeSpent,
-                });
+                        timeSpent,
+                    });
+
+                    // Important: Send a response to complete the request
+                    res.status(204).end();
+                    return;
+                }
             }
+
+            // If no session ID or no existing page view found, create a new record
+            await PageViewModel.create({
+                dodoPageId,
+                visitorId,
+                sessionId: sessionId || `${visitorId}-${Date.now()}`,
+                duration: timeSpent,
+            });
 
             logger.info({
                 type: "analytics",
-                action: "time_spent",
+                action: "record_time_spent",
                 dodoPageId,
                 visitorId,
                 timeSpent,
             });
 
-            // Send a 204 No Content response
-            // Note: With Beacon API, the browser may not process this response
+            // Important: Send a response to complete the request
             res.status(204).end();
         } catch (error) {
             logger.error("Error in recordTimeSpent:", error);
-            // Even for errors, we use 204 because Beacon API doesn't process responses
-            res.status(204).end();
+            // Make sure we always send a response, even in error cases
+            res.status(500).json({
+                success: false,
+                message: "Internal server error: " + error,
+            });
         }
     }
 
