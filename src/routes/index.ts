@@ -8,6 +8,7 @@ import { clientRouter } from "./invoiceRoutes/client";
 import { recipientRouter } from "./invoiceRoutes/recipient";
 import { dodoCoinRouter } from "./dodoCoin";
 import { authenticateUser } from "../middleware/auth";
+import { analyticsRouter } from "./analytics";
 
 const router: Router = Router();
 
@@ -26,6 +27,7 @@ v1Router.use("/bankDetails", authenticateUser, bankDetailsRouter);
 v1Router.use("/recipient", authenticateUser, recipientRouter);
 
 v1Router.use("/invoice", invoiceRouter);
+v1Router.use("/analytics", analyticsRouter);
 
 // Health check
 v1Router.get("/health", (req, res) => {

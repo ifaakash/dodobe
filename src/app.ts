@@ -11,7 +11,20 @@ const app = express();
 
 // Middleware
 app.use(cors());
-app.use(bodyParser.json());
+app.use(
+    bodyParser.json({
+        type: ["application/json", "application/json; charset=utf-8"],
+    })
+);
+
+// For raw blob data (may be needed for some Beacon implementations)
+app.use(
+    bodyParser.raw({
+        type: "application/json",
+        limit: "1mb", // Adjust limit as needed
+    })
+);
+
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // Add endpoint logging middleware
