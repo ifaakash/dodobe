@@ -64,17 +64,20 @@ export class InvoiceController {
       }
 
       // Generate invoice number
-      const lastInvoice = await InvoiceModel.findOne({ userId }).sort({
-        createdAt: -1,
-      });
-      let nextNumber = lastInvoice ? lastInvoice.invoiceNumber + 1 : 1;
-
-      console.log('ext', nextNumber)
+      const currentYear = new Date().getFullYear().toString().slice(-2);
+      
+      // Count existing invoices for this user
+      const invoiceCount = await InvoiceModel.countDocuments({ userId });
+      // Create padded invoice count (e.g., 01, 02, 10, etc.)
+      const paddedCount = (invoiceCount + 1).toString().padStart(2, '0');
+      
+      // Combine year and count to create invoice number format: YYxx
+      const invoiceNumber = `${currentYear}${paddedCount}`;
 
       // Create and save the invoice
       const invoice: IInvoice = new InvoiceModel({
         ...req.body,
-        invoiceNumber: nextNumber,
+        invoiceNumber: invoiceNumber,
         items: [],
         subHeading: "",
       });
