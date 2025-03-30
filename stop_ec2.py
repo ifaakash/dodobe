@@ -41,7 +41,7 @@ def main():
     #time.sleep(300)
 
     # stop the runner
-    stop_runner('i-079b3311cddb58393')
+    stop_runner('i-024617e6eb0a267f7') # New Runner Instance ID
 
 # DEV environment ID [ Instance ID: i-0f907580130be54f4 ]
 

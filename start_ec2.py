@@ -44,7 +44,7 @@ def start_runner(instance_id):
 
 def main():
     # start the runner
-    start_runner('i-079b3311cddb58393')
+    start_runner('i-024617e6eb0a267f7') # New Runner Instance ID
 
     # wait for 5 min
     #print("Waiting for 5min....")
