@@ -240,12 +240,12 @@ export class AnalyticsController {
      * Get analytics for a DodoPage
      */
     public static async getDodoPageAnalytics(
-        req: Request<{ dodoPageId: string }, {}, GetDodoPageAnalyticsRequest>,
+        req: Request<{ dodoPageId: string }, {}, {}, { timeframe?: string }>,
         res: Response<GetDodoPageAnalyticsResponse>
     ): Promise<void> {
         try {
             const { dodoPageId } = req.params;
-            const { timeframe = "week" } = req.body;
+            const { timeframe = "week" } = req.query;
 
             // Check if the DodoPage exists
             const dodoPage = await DodoPageModel.findById(dodoPageId);
@@ -271,8 +271,8 @@ export class AnalyticsController {
                 case "month":
                     startDate.setMonth(endDate.getMonth() - 1);
                     break;
-                case "year":
-                    startDate.setFullYear(endDate.getFullYear() - 1);
+                case "overall":
+                    startDate = new Date(0); // Beginning of Unix time
                     break;
                 default:
                     startDate.setDate(endDate.getDate() - 7); // Default to week

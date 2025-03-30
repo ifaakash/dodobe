@@ -92,7 +92,7 @@ export interface RecordTimeSpentRequest {
 
 // Get Analytics
 export interface GetDodoPageAnalyticsRequest {
-    timeframe?: "day" | "week" | "month" | "year";
+    timeframe?: "day" | "week" | "month" | "overall";
 }
 
 export interface GetDodoPageAnalyticsResponse {
