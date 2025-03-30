@@ -358,6 +358,12 @@ export class AnalyticsController {
                 }))
                 .sort((a, b) => b.interactionCount - a.interactionCount);
 
+            // Calculate total clicks across all blocks
+            const totalClicks = blockInteractionsSummary.reduce(
+                (sum, block) => sum + block.interactionCount,
+                0
+            );
+
             // Get views by date
             const viewsByDate: Record<string, number> = {};
             pageViews.forEach((view) => {
@@ -398,11 +404,12 @@ export class AnalyticsController {
                     totalViews,
                     uniqueVisitors,
                     averageDuration,
+                    totalClicks,
                     topReferrers,
                     blockInteractions: blockInteractionsSummary,
                     viewsByDate: viewsByDateArray,
                     deviceBreakdown,
-                },
+                } as GetDodoPageAnalyticsResponse["data"],
             });
         } catch (error) {
             logger.error("Error in getDodoPageAnalytics:", error);

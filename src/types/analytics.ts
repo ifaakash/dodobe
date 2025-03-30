@@ -29,6 +29,7 @@ export interface AnalyticsSummary {
     totalViews: number;
     uniqueVisitors: number;
     averageDuration: number;
+    totalClicks: number;
     topReferrers: {
         source: string;
         count: number;
@@ -100,6 +101,7 @@ export interface GetDodoPageAnalyticsResponse {
         totalViews: number;
         uniqueVisitors: number;
         averageDuration: number;
+        totalClicks: number;
         topReferrers: {
             source: string;
             count: number;
