@@ -35,11 +35,11 @@ build-application:
   script:
     # - git checkout -b feat/refactor origin/feat/refactor
     # - git pull origin feat/refactor
-    - sudo docker build -t $IMAGE_NAME .
+    - docker build -t $IMAGE_NAME .
     # - sudo docker tag $IMAGE_NAME:latest $IMAGE_NAME:$CI_COMMIT_SHORT_SHA
     # - sudo docker tag $IMAGE_NAME:latest $IMAGE_NAME:$(date +%Y%m%d-%H%M%S)
-    - sudo docker images
-    - sudo docker push registry.gitlab.com/dodo1604703/dodobe/feat/refactor:latestv1.0
+    - docker images
+    - docker push registry.gitlab.com/dodo1604703/dodobe/feat/refactor:latestv1.0
     # - sudo docker push $IMAGE_NAME:$CI_COMMIT_SHORT_SHA
 
 # stop existing containers with {latest-1} code structure
