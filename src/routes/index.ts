@@ -9,6 +9,7 @@ import { recipientRouter } from "./invoiceRoutes/recipient";
 import { dodoCoinRouter } from "./dodoCoin";
 import { authenticateUser } from "../middleware/auth";
 import { analyticsRouter } from "./analytics";
+import contentRouter from "./contentRoutes";
 
 const router: Router = Router();
 
@@ -26,6 +27,7 @@ v1Router.use("/coins", authenticateUser, dodoCoinRouter);
 v1Router.use("/client", authenticateUser, clientRouter);
 v1Router.use("/bankDetails", authenticateUser, bankDetailsRouter);
 v1Router.use("/recipient", authenticateUser, recipientRouter);
+v1Router.use("/content", authenticateUser, contentRouter);
 
 v1Router.use("/invoice", invoiceRouter);
 v1Router.use("/analytics", analyticsRouter);
