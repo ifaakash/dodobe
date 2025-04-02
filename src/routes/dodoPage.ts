@@ -17,7 +17,7 @@ router.post(
     DodoPageController.createDodoPage
 );
 
-// Get DodoPage by custom URL
+// Get DodoPage by custom URL (for public access)
 getByUrlRouter.get("/:url", DodoPageController.getDodoPageByUrl);
 
 // Get DodoPage by ID

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { authRouter } from "./auth";
 import { dodoPageRouter, getByUrlRouter } from "./dodoPage";
-import { blockRouter } from "./block";
+import { blockRouter, pollVoteRouter } from "./block";
 import { invoiceRouter } from "./invoiceRoutes/invoice";
 import { bankDetailsRouter } from "./invoiceRoutes/bankDetails";
 import { clientRouter } from "./invoiceRoutes/client";
@@ -19,6 +19,7 @@ const v1Router = Router();
 // Public routes (no auth required)
 v1Router.use("/auth", authRouter);
 v1Router.use("/dodo-pages/get-by-url", getByUrlRouter);
+v1Router.use("/block/poll-vote", pollVoteRouter);
 
 // Protected routes (auth required)
 v1Router.use("/dodo-pages", authenticateUser, dodoPageRouter);
