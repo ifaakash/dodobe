@@ -57,4 +57,59 @@ export class ClientController {
       });
     }
   }
+
+  public static async updateClient(
+    req: Request<{ clientId: string }, {}, CreateClientRequest>,
+    res: Response<CreateClientResponse>
+  ) {
+    try {
+      const { clientId } = req.params;
+      const { userId } = req.body;
+
+      if (!clientId || !userId) {
+        return res.status(400).json({
+          success: false,
+          msg: "Missing clientId or userId",
+        });
+      }
+
+      const client = await ClientDetailModel.find({
+        _id: clientId,
+        userId,
+      });
+
+      if (!client) {
+        return res.status(404).json({
+          success: false,
+          msg: "Client not found",
+        });
+      }
+
+      const updatedClient = await ClientDetailModel.findByIdAndUpdate(
+        clientId,
+        { ...req.body },
+        { new: true }
+      );
+
+      if (!updatedClient) {
+        return res.status(404).json({
+          success: false,
+          msg: "Client not found",
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        msg: "Client updated successfully",
+        data: updatedClient,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        success: false,
+        msg: (error as Error).message,
+      });
+    }
+  }
+
 }

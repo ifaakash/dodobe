@@ -7,4 +7,6 @@ router.post('/create', RecipientController.createRecipient);
 
 router.post('/getRecipients', RecipientController.getRecipients);
 
+router.patch('/update/:recipientId', RecipientController.updateRecipient);
+
 export { router as recipientRouter };

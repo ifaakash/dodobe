@@ -62,4 +62,52 @@ export class RecipientController {
       });
     }
   }
+
+  public static async updateRecipient(
+    req: Request<{ recipientId: string }, {}, CreateRecipientRequest>,
+    res: Response<CreateRecipientResponse>
+  ) {
+    try {
+      const { recipientId } = req.params;
+      const { userId } = req.body;
+      if (!recipientId || !userId) {
+        return res.status(400).json({
+          success: false,
+          msg: "Recipient ID and User ID are required",
+        });
+      }
+      const recipient = await RecipientDetailModel.findOne({
+        _id: recipientId,
+        userId,
+      });
+      if (!recipient) {
+        return res.status(404).json({
+          success: false,
+          msg: "Recipient not found",
+        });
+      }
+      const updatedRecipient = await RecipientDetailModel.findByIdAndUpdate(
+        recipientId,
+        req.body,
+        { new: true }
+      );
+
+      if (!updatedRecipient) {
+        return res.status(404).json({
+          success: false,
+          msg: "Recipient not found",
+        });
+      }
+      return res.status(200).json({
+        success: true,
+        msg: "Recipient Updated",
+        data: updatedRecipient,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        msg: (error as Error).message,
+      });
+    }
+  }
 }

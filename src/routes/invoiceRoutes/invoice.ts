@@ -18,4 +18,6 @@ router.put('/mark-as-paid', InvoiceController.markAsPaid)
 
 router.put('/toggle-payment-status', InvoiceController.togglePaymentStatus)
 
+router.patch('/updateItemsNotes/:invoiceId', InvoiceController.updateItemsNotes)
+
 export { router as invoiceRouter };
