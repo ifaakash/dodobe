@@ -17,7 +17,7 @@ export class BankDetailsController {
         return res.status(404).json({ success: false, msg: "User not found" });
       }
 
-      const bankDetails:IBankDetail = await BankDetailModel.create(req.body);
+      const bankDetails: IBankDetail = await BankDetailModel.create(req.body);
 
       user.bankDetails.push(bankDetails._id as any);
       await user.save();
@@ -31,4 +31,33 @@ export class BankDetailsController {
       return res.status(500).json({ success: false, msg: (error as Error).message });
     }
   }
+
+  public static async updateBankDetails(
+    req: Request<{ id: string }, {}, CreateBankDetailsRequest>,
+    res: Response<CreateBankDetailsResponse>
+  ) {
+    try {
+      const { id } = req.params;
+      const updateData = req.body;
+
+      const bankDetails = await BankDetailModel.findById(id);
+      if (!bankDetails) {
+        return res.status(404).json({ success: false, msg: "Bank details not found" });
+      }
+
+      // Update the fields
+      Object.assign(bankDetails, updateData);
+      await bankDetails.save();
+
+      return res
+        .status(200)
+        .json({ success: true, msg: "Bank details updated successfully", data: bankDetails });
+    } catch (error) {
+      console.error(error);
+      return res
+        .status(500)
+        .json({ success: false, msg: (error as Error).message });
+    }
+  }
+
 }

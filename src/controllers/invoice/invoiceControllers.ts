@@ -65,12 +65,12 @@ export class InvoiceController {
 
       // Generate invoice number
       const currentYear = new Date().getFullYear().toString().slice(-2);
-      
+
       // Count existing invoices for this user
       const invoiceCount = await InvoiceModel.countDocuments({ userId });
       // Create padded invoice count (e.g., 01, 02, 10, etc.)
       const paddedCount = (invoiceCount + 1).toString().padStart(2, '0');
-      
+
       // Combine year and count to create invoice number format: YYxx
       const invoiceNumber = `${currentYear}${paddedCount}`;
 
@@ -246,7 +246,7 @@ export class InvoiceController {
         subHeading: invoice.subHeading,
       };
 
-      return res.status(200).json({ invoice: finalInvoice });
+      return res.status(200).json({ invoice: finalInvoice, success: true });
     } catch (error) {
       const err = error as Error;
       console.log(err);
@@ -484,4 +484,73 @@ export class InvoiceController {
       });
     }
   }
+
+  public static async updateItemsNotes(
+    req: Request<{ invoiceId: string }, {}, {
+      items: any[];
+      note: string;
+      gst?: number;
+      tds?: number;
+      discount?: number;
+      dueDate?: string;
+    }>,
+    res: Response<{ success: boolean; msg: string }>
+  ) {
+    try {
+      const { invoiceId } = req.params;
+      const { items, note, gst, tds, discount, dueDate } = req.body;
+  
+      // Find the invoice
+      const invoice = await InvoiceModel.findById(invoiceId);
+      if (!invoice) {
+        return res.status(404).json({
+          success: false,
+          msg: "Invoice not found",
+        });
+      }
+  
+      const createdItems: IItem[] = [];
+  
+      for (const item of items) {
+        // If marked as deleted and has _id, remove it
+        if (item.isDeleted && item._id) {
+          await ItemModel.findByIdAndDelete(item._id);
+        }
+  
+        // If it's a new item and not deleted, create it
+        if (item.isNewItem && !item.isDeleted) {
+          const newItem = new ItemModel({
+            ...item,
+            invoiceId: invoice._id,
+          });
+          await newItem.save();
+          createdItems.push(newItem);
+        }
+      }
+  
+      // Update invoice fields
+      invoice.items = createdItems;
+      invoice.note = note;
+      if (gst !== undefined) invoice.gst = gst;
+      if (tds !== undefined) invoice.tds = tds;
+      if (discount !== undefined) invoice.discount = discount;
+      if (dueDate) invoice.dueDate = new Date(dueDate);
+  
+      await invoice.save();
+  
+      return res.status(200).json({
+        success: true,
+        msg: "Invoice updated successfully",
+      });
+  
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        success: false,
+        msg: "Internal server error: " + error,
+      });
+    }
+  }
+  
+
 }
