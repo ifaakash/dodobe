@@ -509,27 +509,36 @@ export class InvoiceController {
         });
       }
   
-      const createdItems: IItem[] = [];
+      const updatedItems: IItem[] = [];
   
       for (const item of items) {
-        // If marked as deleted and has _id, remove it
+        // If item is marked deleted and has _id, delete it
         if (item.isDeleted && item._id) {
           await ItemModel.findByIdAndDelete(item._id);
+          continue;
         }
   
-        // If it's a new item and not deleted, create it
+        // If it's a new item (no _id), create and save it
         if (item.isNewItem && !item.isDeleted) {
           const newItem = new ItemModel({
             ...item,
             invoiceId: invoice._id,
           });
           await newItem.save();
-          createdItems.push(newItem);
+          updatedItems.push(newItem);
+        }
+  
+        // If item has _id and is not marked as deleted, keep it as is
+        if (item._id && !item.isDeleted) {
+          const existingItem = await ItemModel.findById(item._id);
+          if (existingItem) {
+            updatedItems.push(existingItem);
+          }
         }
       }
   
       // Update invoice fields
-      invoice.items = createdItems;
+      invoice.items = updatedItems;
       invoice.note = note;
       if (gst !== undefined) invoice.gst = gst;
       if (tds !== undefined) invoice.tds = tds;
@@ -551,6 +560,7 @@ export class InvoiceController {
       });
     }
   }
+  
   
 
 }
