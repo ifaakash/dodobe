@@ -7,6 +7,7 @@ import {
     InvoiceModel,
     ClientDetailModel,
     RecipientDetailModel,
+    CoinTransactionModel,
 } from "../../models";
 import { logger } from "../../utils/logger";
 import {
@@ -20,7 +21,7 @@ import {
 import mongoose, { Types } from "mongoose";
 import { IUserInterestCategory, IDodoPage } from "../../types/user";
 import { FileManager } from "../../utils/fileManager";
-import { ICoinTransaction } from "../../types/dodoCoin";
+import { CoinMilestoneType, ICoinTransaction, TransactionType } from "../../types/dodoCoin";
 import { ID } from "../../types/common";
 import { generateToken } from "../../utils/jwt";
 import { IBankDetail, IClientDetail, IInvoice, IRecipientDetail } from "@/types/invoice";
@@ -59,6 +60,18 @@ export class AuthController {
                 mobileNumber,
                 firebaseUid,
             });
+
+            const transaction = await CoinTransactionModel.create({
+                userId : newUser._id,
+                amount : 200,
+                transactionType : TransactionType.EARNED,
+                description : 'Earned from creating page',
+                milestoneType : CoinMilestoneType.CREATE_DODO_PAGE,
+            });
+            // Update user's dodoCoins
+            newUser.dodoCoins = (newUser.dodoCoins || 0) + transaction.amount;
+
+            await newUser.save();
 
             const token = generateToken((newUser._id as ID).toString() || "");
 
