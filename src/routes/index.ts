@@ -37,7 +37,7 @@ v1Router.use("/analytics", analyticsRouter);
 v1Router.get("/health", (req, res) => {
     res.status(200).json({
         success: true,
-        message: `DODO BE Server is running on port ${process.env.PORT}`,
+        message: `DODO backend Server is running on port ${process.env.PORT}`,
     });
 });
 
