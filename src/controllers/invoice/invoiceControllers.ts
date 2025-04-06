@@ -334,56 +334,81 @@ export class InvoiceController {
 
       // Calculate outstanding amount for due invoices
       for (const invoice of dueInvoices) {
-        for (const itemId of invoice.items) {
-          const item = await ItemModel.findById(itemId);
+          let invoiceSubTotal = 0;
+          for (const itemId of invoice.items) {
+              const item = await ItemModel.findById(itemId);
 
-          if (!item) {
-            res.status(400).json({
-              success: false,
-              msg: `Item with ID ${itemId} not found`,
-            });
-            return;
+              if (!item) {
+                  res.status(400).json({
+                      success: false,
+                      msg: `Item with ID ${itemId} not found`,
+                  });
+                  return;
+              }
+
+              invoiceSubTotal += item.quantity * item.price;
           }
-
-          outStandingAmount += item.quantity * item.price;
-        }
+          // Apply GST, TDS, and discount
+          const discountAmount = (invoiceSubTotal * invoice.discount) / 100;
+          const gstAmount = (invoiceSubTotal * invoice.gst) / 100;
+          const tdsAmount = (invoiceSubTotal * invoice.tds) / 100;
+          outStandingAmount +=
+              invoiceSubTotal - discountAmount + gstAmount - tdsAmount;
       }
 
       // Calculate pending amount for non-overdue invoices
       for (const invoice of invoices) {
-        const dueDate = new Date(invoice.dueDate);
+          const dueDate = new Date(invoice.dueDate);
+          if (currentDate <= dueDate) {
+              let invoiceSubTotal = 0;
+              for (const itemId of invoice.items) {
+                  const item = await ItemModel.findById(itemId);
 
-        if (currentDate <= dueDate) {
-          for (const itemId of invoice.items) {
-            const item = await ItemModel.findById(itemId);
+                  if (!item) {
+                      res.status(400).json({
+                          success: false,
+                          msg: `Item with ID ${itemId} not found`,
+                      });
+                      return;
+                  }
 
-            if (!item) {
-              res.status(400).json({
-                success: false,
-                msg: `Item with ID ${itemId} not found`,
-              });
-              return;
-            }
-
-            pendingAmount += item.quantity * item.price;
+                  invoiceSubTotal += item.quantity * item.price;
+              }
+              // Apply GST, TDS, and discount
+              const discountAmount = (invoiceSubTotal * invoice.discount) / 100;
+              const gstAmount = (invoiceSubTotal * invoice.gst) / 100;
+              const tdsAmount = (invoiceSubTotal * invoice.tds) / 100;
+              pendingAmount +=
+                  invoiceSubTotal - discountAmount + gstAmount - tdsAmount;
           }
-        }
       }
 
+      // Calculate paid amount
       for (const invoice of paidInvoices) {
-        const items = await ItemModel.find({ _id: { $in: invoice.items } });
-        paidAmount += items.reduce((total, item) => {
-          return total + item.quantity * item.price;
-        }, 0);
+          const items = await ItemModel.find({ _id: { $in: invoice.items } });
+          const invoiceSubTotal = items.reduce((total, item) => {
+              return total + item.quantity * item.price;
+          }, 0);
+          // Apply GST, TDS, and discount
+          const discountAmount = (invoiceSubTotal * invoice.discount) / 100;
+          const gstAmount = (invoiceSubTotal * invoice.gst) / 100;
+          const tdsAmount = (invoiceSubTotal * invoice.tds) / 100;
+          paidAmount +=
+              invoiceSubTotal - discountAmount + gstAmount - tdsAmount;
       }
 
       // Calculate total amount for all invoices
       let totalAmount = 0;
       for (const invoice of invoices) {
         const items = await ItemModel.find({ _id: { $in: invoice.items } });
-        totalAmount += items.reduce((total, item) => {
-          return total + item.quantity * item.price;
+        const invoiceSubTotal = items.reduce((total, item) => {
+            return total + item.quantity * item.price;
         }, 0);
+        // Apply GST, TDS, and discount
+        const discountAmount = (invoiceSubTotal * invoice.discount) / 100;
+        const gstAmount = (invoiceSubTotal * invoice.gst) / 100;
+        const tdsAmount = (invoiceSubTotal * invoice.tds) / 100;
+        totalAmount += invoiceSubTotal - discountAmount + gstAmount - tdsAmount;
       }
 
       // Respond with the statistics
