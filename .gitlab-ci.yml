@@ -92,7 +92,7 @@ start_new_infra:
   dependencies:
     - stop_existing_infra
   script:
-    - apt update && apt install -y sudo openssh-client
+    # - apt update && apt install -y sudo openssh-client
     - echo "$SSH_PRIVATE_KEY" > dodokey.pem
     - chmod 600 dodokey.pem
     - source ip.env
