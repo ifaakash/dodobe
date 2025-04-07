@@ -63,7 +63,7 @@ stop_existing_infra:
     - ssh-keyscan -H $BACKEND_IP >> ~/.ssh/known_hosts
     # Create SSH key file from environment variable and set permissions
     - echo "$SSH_PRIVATE_KEY" > dodokey.pem
-    - echo "PUBLIC_IP=$PUBLIC_IP" > ip.env
+    # - echo "PUBLIC_IP=$PUBLIC_IP" > ip.env
     - echo "DASHED_IP=$DASHED_IP" > ip.env
     - chmod 600 dodokey.pem
     # SSH into the EC2 instance and:
@@ -74,6 +74,7 @@ stop_existing_infra:
   artifacts:
     paths:
       - dodokey.pem
+      - ip.env
     # store the dashed IP in env variables and use in coming stages
     reports:
       dotenv:
@@ -89,7 +90,9 @@ start_new_infra:
     - stop_existing_infra
   script:
     # - apt update && apt install -y sudo openssh-client
+    - ls -la
     - cat ip.env
+    - source ip.env
     - echo "$SSH_PRIVATE_KEY" > dodokey.pem
     - chmod 600 dodokey.pem
     - ssh -o StrictHostKeyChecking=no -i dodokey.pem ubuntu@ec2-$DASHED_IP.ap-south-1.compute.amazonaws.com "sudo docker images -q | grep . && sudo docker rmi -f \$(sudo docker images -aq) || echo 'No images to remove'; sudo docker pull registry.gitlab.com/dodo1604703/dodobe/feat/refactor:v1.0 && sudo docker images && sudo docker run -d -p 3001:3002 -e AWS_REGION=$AWS_REGION -e S3_BUCKET_NAME=$S3_BUCKET_NAME -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_S3 -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_S3 --log-driver=awslogs --log-opt awslogs-group=dodo-backend --log-opt awslogs-stream=dodo-backend-logs --restart=always registry.gitlab.com/dodo1604703/dodobe/feat/refactor:v1.1"
