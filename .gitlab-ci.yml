@@ -63,14 +63,14 @@ stop_existing_infra:
     - ssh-keyscan -H $BACKEND_IP >> ~/.ssh/known_hosts
     # Create SSH key file from environment variable and set permissions
     - echo "$SSH_PRIVATE_KEY" > dodokey.pem
+    - echo "PUBLIC_IP=$PUBLIC_IP" > ip.env
+    - echo "DASHED_IP=$DASHED_IP" > ip.env
     - chmod 600 dodokey.pem
     # SSH into the EC2 instance and:
     # 1. List all running Docker containers (docker ps)
     # 2. Stop all running containers (docker stop)
     # 3. Remove all containers (docker rm -f)
     - ssh -o StrictHostKeyChecking=no -i dodokey.pem ubuntu@ec2-${DASHED_IP}.ap-south-1.compute.amazonaws.com "sudo docker ps && sudo docker rm -f \$(sudo docker stop \$(sudo docker ps -a -q))"
-    - echo "PUBLIC_IP=$PUBLIC_IP" > ip.env
-    - echo "DASHED_IP=$DASHED_IP" > ip.env
   artifacts:
     paths:
       - dodokey.pem
