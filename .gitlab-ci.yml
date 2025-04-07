@@ -8,7 +8,7 @@ stages:
 variables:
   AWS_DEFAULT_REGION: "ap-south-1" # mumbai region for AWS
   IMAGE_NAME: "registry.gitlab.com/dodo1604703/dodobe/feat/refactor"
-  IMAGE_TAG: "v1.1"
+  IMAGE_TAG: "publish"
 
 # cache node modules for faster builds
 cache:
@@ -51,50 +51,45 @@ stop_existing_infra:
   # image: amazon/aws-cli
   image: bitnami/minideb:latest
   script:
+    - aws autoscaling start-instance-refresh --auto-scaling-group-name dodo-backend-backup-asg
     # Get the public IP of the EC2 instance tagged with project=dodo-backend-backup
     # --filters "Name=key:project, Values=dodo-backend-backup" \
     # Fetch the IP of dodo-backend instance and CREATE AMI AND ASG FROM THAT (next scope of development)
-    - PUBLIC_IP=$(aws ec2 describe-instances --filters "Name=tag:Name, Values=dodo-backend" --query "Reservations[*].Instances[*].PublicIpAddress" --output text)
-    # Export the IP as environment variables for later use
-    - export BACKEND_IP=$PUBLIC_IP
-    # Convert IP dots to dashes for AWS hostname format
-    - export DASHED_IP=$(echo $PUBLIC_IP | tr '.' '-')
-    # Add the instance to known hosts to avoid host key verification prompts
-    - ssh-keyscan -H $BACKEND_IP >> ~/.ssh/known_hosts
-    # Create SSH key file from environment variable and set permissions
-    - echo "$SSH_PRIVATE_KEY" > dodokey.pem
-    # - echo "PUBLIC_IP=$PUBLIC_IP" > ip.env
-    - echo "DASHED_IP=$DASHED_IP" > ip.env
-    - chmod 600 dodokey.pem
+    # - PUBLIC_IP=$(aws ec2 describe-instances --filters "Name=tag:Name, Values=dodo-backend" --query "Reservations[*].Instances[*].PublicIpAddress" --output text)
+    # # Export the IP as environment variables for later use
+    # - export BACKEND_IP=$PUBLIC_IP
+    # # Convert IP dots to dashes for AWS hostname format
+    # - export DASHED_IP=$(echo $PUBLIC_IP | tr '.' '-')
+    # # Add the instance to known hosts to avoid host key verification prompts
+    # - ssh-keyscan -H $BACKEND_IP >> ~/.ssh/known_hosts
+    # # Create SSH key file from environment variable and set permissions
+    # - echo "$SSH_PRIVATE_KEY" > dodokey.pem
+    # - chmod 600 dodokey.pem
     # SSH into the EC2 instance and:
     # 1. List all running Docker containers (docker ps)
     # 2. Stop all running containers (docker stop)
     # 3. Remove all containers (docker rm -f)
-    - ssh -o StrictHostKeyChecking=no -i dodokey.pem ubuntu@ec2-${DASHED_IP}.ap-south-1.compute.amazonaws.com "sudo docker ps && sudo docker rm -f \$(sudo docker stop \$(sudo docker ps -a -q))"
-  artifacts:
-    paths:
-      - dodokey.pem
-      - ip.env
-    # store the dashed IP in env variables and use in coming stages
-    reports:
-      dotenv:
-        - ip.env
-    expire_in: 1 day
+    # - ssh -o StrictHostKeyChecking=no -i dodokey.pem ubuntu@ec2-${DASHED_IP}.ap-south-1.compute.amazonaws.com "sudo docker ps && sudo docker rm -f \$(sudo docker stop \$(sudo docker ps -a -q))"
+  # artifacts:
+  #   paths:
+  #     - dodokey.pem
+  #     - ip.env
+  #   expire_in: 1 day
 
 # spin up the latest code structure application
-start_new_infra:
-  stage: deploy_dev
-  tags:
-    - dodo-group-runner
-  dependencies:
-    - stop_existing_infra
-  script:
-    # - apt update && apt install -y sudo openssh-client\
-    - PUBLIC_IP=$(aws ec2 describe-instances --filters "Name=tag:Name, Values=dodo-backend" --query "Reservations[*].Instances[*].PublicIpAddress" --output text)
-    - DASHED_IP=$(echo $PUBLIC_IP | tr '.' '-')
-    - echo "$SSH_PRIVATE_KEY" > dodokey.pem
-    - chmod 600 dodokey.pem
-    - ssh -o StrictHostKeyChecking=no -i dodokey.pem ubuntu@ec2-$DASHED_IP.ap-south-1.compute.amazonaws.com "sudo docker images -q | grep . && sudo docker rmi -f \$(sudo docker images -aq) || echo 'No images to remove'; sudo docker pull registry.gitlab.com/dodo1604703/dodobe/feat/refactor:v1.0 && sudo docker images && sudo docker run -d -p 3001:3002 -e AWS_REGION=$AWS_REGION -e S3_BUCKET_NAME=$S3_BUCKET_NAME -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_S3 -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_S3 --log-driver=awslogs --log-opt awslogs-group=dodo-backend --log-opt awslogs-stream=dodo-backend-logs --restart=always registry.gitlab.com/dodo1604703/dodobe/feat/refactor:v1.1"
+# start_new_infra:
+#   stage: deploy_dev
+#   tags:
+#     - dodo-group-runner
+#   dependencies:
+#     - stop_existing_infra
+#   script:
+#     # - apt update && apt install -y sudo openssh-client\
+#     - PUBLIC_IP=$(aws ec2 describe-instances --filters "Name=tag:Name, Values=dodo-backend" --query "Reservations[*].Instances[*].PublicIpAddress" --output text)
+#     - DASHED_IP=$(echo $PUBLIC_IP | tr '.' '-')
+#     - echo "$SSH_PRIVATE_KEY" > dodokey.pem
+#     - chmod 600 dodokey.pem
+#     - ssh -o StrictHostKeyChecking=no -i dodokey.pem ubuntu@ec2-$DASHED_IP.ap-south-1.compute.amazonaws.com "sudo docker images -q | grep . && sudo docker rmi -f \$(sudo docker images -aq) || echo 'No images to remove'; sudo docker pull registry.gitlab.com/dodo1604703/dodobe/feat/refactor:v1.0 && sudo docker images && sudo docker run -d -p 3001:3002 -e AWS_REGION=$AWS_REGION -e S3_BUCKET_NAME=$S3_BUCKET_NAME -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_S3 -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_S3 --log-driver=awslogs --log-opt awslogs-group=dodo-backend --log-opt awslogs-stream=dodo-backend-logs --restart=always registry.gitlab.com/dodo1604703/dodobe/feat/refactor:publish"
 
 # remove image older than 48h from runner
 deprecated_image:
