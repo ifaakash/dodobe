@@ -54,10 +54,7 @@ stop_existing_infra:
     # Get the public IP of the EC2 instance tagged with project=dodo-backend-backup
     # --filters "Name=key:project, Values=dodo-backend-backup" \
     # Fetch the IP of dodo-backend instance and CREATE AMI AND ASG FROM THAT (next scope of development)
-    - PUBLIC_IP=$(aws ec2 describe-instances \
-      --filters "Name=key:Name, Values=dodo-backend" \
-      --query "Reservations[*].Instances[*].PublicIpAddress" \
-      --output text)
+    - PUBLIC_IP=$(aws ec2 describe-instances --filters "Name=key:Name, Values=dodo-backend" --query "Reservations[*].Instances[*].PublicIpAddress" --output text)
     # Export the IP as environment variables for later use
     - export BACKEND_IP=$PUBLIC_IP
     # Convert IP dots to dashes for AWS hostname format
@@ -94,7 +91,7 @@ start_new_infra:
     # - apt update && apt install -y sudo openssh-client
     - echo "$SSH_PRIVATE_KEY" > dodokey.pem
     - chmod 600 dodokey.pem
-    - ssh -o StrictHostKeyChecking=no -i dodokey.pem ubuntu@$PUBLIC_IP "sudo docker images -q | grep . && sudo docker rmi -f \$(sudo docker images -aq) || echo 'No images to remove'; sudo docker pull registry.gitlab.com/dodo1604703/dodobe/feat/refactor:v1.0 && sudo docker images && sudo docker run -d -p 3001:3002 -e AWS_REGION=$AWS_REGION -e S3_BUCKET_NAME=$S3_BUCKET_NAME -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_S3 -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_S3 --log-driver=awslogs --log-opt awslogs-group=dodo-backend --log-opt awslogs-stream=dodo-backend-logs --restart=always registry.gitlab.com/dodo1604703/dodobe/feat/refactor:v1.1"
+    - ssh -o StrictHostKeyChecking=no -i dodokey.pem ubuntu@ec${DASHED_IP}.ap-south-1.compute.amazonaws.com "sudo docker images -q | grep . && sudo docker rmi -f \$(sudo docker images -aq) || echo 'No images to remove'; sudo docker pull registry.gitlab.com/dodo1604703/dodobe/feat/refactor:v1.0 && sudo docker images && sudo docker run -d -p 3001:3002 -e AWS_REGION=$AWS_REGION -e S3_BUCKET_NAME=$S3_BUCKET_NAME -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_S3 -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_S3 --log-driver=awslogs --log-opt awslogs-group=dodo-backend --log-opt awslogs-stream=dodo-backend-logs --restart=always registry.gitlab.com/dodo1604703/dodobe/feat/refactor:v1.1"
 
 # remove image older than 48h from runner
 deprecated_image:
