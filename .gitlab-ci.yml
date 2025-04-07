@@ -68,7 +68,7 @@ stop_existing_infra:
     # 1. List all running Docker containers (docker ps)
     # 2. Stop all running containers (docker stop)
     # 3. Remove all containers (docker rm -f)
-    - ssh -o StrictHostKeyChecking=no -i dodokey.pem ubuntu@ec${DASHED_IP}.ap-south-1.compute.amazonaws.com "sudo docker ps && sudo docker rm -f \$(sudo docker stop \$(sudo docker ps -a -q))"
+    - ssh -o StrictHostKeyChecking=no -i dodokey.pem ubuntu@ec2-${DASHED_IP}.ap-south-1.compute.amazonaws.com "sudo docker ps && sudo docker rm -f \$(sudo docker stop \$(sudo docker ps -a -q))"
     - echo "PUBLIC_IP=$PUBLIC_IP" > ip.env
     - echo "DASHED_IP=$DASHED_IP" >> ip.env
   artifacts:
@@ -91,7 +91,7 @@ start_new_infra:
     # - apt update && apt install -y sudo openssh-client
     - echo "$SSH_PRIVATE_KEY" > dodokey.pem
     - chmod 600 dodokey.pem
-    - ssh -o StrictHostKeyChecking=no -i dodokey.pem ubuntu@ec${DASHED_IP}.ap-south-1.compute.amazonaws.com "sudo docker images -q | grep . && sudo docker rmi -f \$(sudo docker images -aq) || echo 'No images to remove'; sudo docker pull registry.gitlab.com/dodo1604703/dodobe/feat/refactor:v1.0 && sudo docker images && sudo docker run -d -p 3001:3002 -e AWS_REGION=$AWS_REGION -e S3_BUCKET_NAME=$S3_BUCKET_NAME -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_S3 -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_S3 --log-driver=awslogs --log-opt awslogs-group=dodo-backend --log-opt awslogs-stream=dodo-backend-logs --restart=always registry.gitlab.com/dodo1604703/dodobe/feat/refactor:v1.1"
+    - ssh -o StrictHostKeyChecking=no -i dodokey.pem ubuntu@ec2-${DASHED_IP}.ap-south-1.compute.amazonaws.com "sudo docker images -q | grep . && sudo docker rmi -f \$(sudo docker images -aq) || echo 'No images to remove'; sudo docker pull registry.gitlab.com/dodo1604703/dodobe/feat/refactor:v1.0 && sudo docker images && sudo docker run -d -p 3001:3002 -e AWS_REGION=$AWS_REGION -e S3_BUCKET_NAME=$S3_BUCKET_NAME -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_S3 -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_S3 --log-driver=awslogs --log-opt awslogs-group=dodo-backend --log-opt awslogs-stream=dodo-backend-logs --restart=always registry.gitlab.com/dodo1604703/dodobe/feat/refactor:v1.1"
 
 # remove image older than 48h from runner
 deprecated_image:
