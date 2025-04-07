@@ -1,8 +1,8 @@
 stages:
   - runner_up
-  - build
+  - build_cum_deploy
   - deploy_dev
-  - cleanup
+  - runner_cleanup
   - runner_down
 
 variables:
@@ -26,7 +26,7 @@ start_ec2:
 
 # Build the image for the application and push to dockerhub
 build-application:
-  stage: build
+  stage: build_cum_deploy
   tags:
     - dodo-group-runner
   image: bitnami/git:latest
@@ -39,42 +39,43 @@ build-application:
     # - sudo docker tag $IMAGE_NAME:latest $IMAGE_NAME:$(date +%Y%m%d-%H%M%S)
     - docker images
     - docker push $IMAGE_NAME:$IMAGE_TAG
+    - aws autoscaling start-instance-refresh --auto-scaling-group-name dodo-backend-backup-asg
     # - sudo docker push $IMAGE_NAME:$CI_COMMIT_SHORT_SHA
 
 # stop existing containers with {latest-1} code structure
-stop_existing_infra:
-  stage: deploy_dev
-  tags:
-    - dodo-group-runner
-  # allow job to fail as there might be case that there is no container running, so we proceed with deployment
-  allow_failure: true
-  # image: amazon/aws-cli
-  image: bitnami/minideb:latest
-  script:
-    - aws autoscaling start-instance-refresh --auto-scaling-group-name dodo-backend-backup-asg
-    # Get the public IP of the EC2 instance tagged with project=dodo-backend-backup
-    # --filters "Name=key:project, Values=dodo-backend-backup" \
-    # Fetch the IP of dodo-backend instance and CREATE AMI AND ASG FROM THAT (next scope of development)
-    # - PUBLIC_IP=$(aws ec2 describe-instances --filters "Name=tag:Name, Values=dodo-backend" --query "Reservations[*].Instances[*].PublicIpAddress" --output text)
-    # # Export the IP as environment variables for later use
-    # - export BACKEND_IP=$PUBLIC_IP
-    # # Convert IP dots to dashes for AWS hostname format
-    # - export DASHED_IP=$(echo $PUBLIC_IP | tr '.' '-')
-    # # Add the instance to known hosts to avoid host key verification prompts
-    # - ssh-keyscan -H $BACKEND_IP >> ~/.ssh/known_hosts
-    # # Create SSH key file from environment variable and set permissions
-    # - echo "$SSH_PRIVATE_KEY" > dodokey.pem
-    # - chmod 600 dodokey.pem
-    # SSH into the EC2 instance and:
-    # 1. List all running Docker containers (docker ps)
-    # 2. Stop all running containers (docker stop)
-    # 3. Remove all containers (docker rm -f)
-    # - ssh -o StrictHostKeyChecking=no -i dodokey.pem ubuntu@ec2-${DASHED_IP}.ap-south-1.compute.amazonaws.com "sudo docker ps && sudo docker rm -f \$(sudo docker stop \$(sudo docker ps -a -q))"
-  # artifacts:
-  #   paths:
-  #     - dodokey.pem
-  #     - ip.env
-  #   expire_in: 1 day
+# stop_existing_infra:
+#   stage: deploy_dev
+#   tags:
+#     - dodo-group-runner
+#   # allow job to fail as there might be case that there is no container running, so we proceed with deployment
+#   allow_failure: true
+#   # image: amazon/aws-cli
+#   image: bitnami/minideb:latest
+#   script:
+#     - aws autoscaling start-instance-refresh --auto-scaling-group-name dodo-backend-backup-asg
+# Get the public IP of the EC2 instance tagged with project=dodo-backend-backup
+# --filters "Name=key:project, Values=dodo-backend-backup" \
+# Fetch the IP of dodo-backend instance and CREATE AMI AND ASG FROM THAT (next scope of development)
+# - PUBLIC_IP=$(aws ec2 describe-instances --filters "Name=tag:Name, Values=dodo-backend" --query "Reservations[*].Instances[*].PublicIpAddress" --output text)
+# # Export the IP as environment variables for later use
+# - export BACKEND_IP=$PUBLIC_IP
+# # Convert IP dots to dashes for AWS hostname format
+# - export DASHED_IP=$(echo $PUBLIC_IP | tr '.' '-')
+# # Add the instance to known hosts to avoid host key verification prompts
+# - ssh-keyscan -H $BACKEND_IP >> ~/.ssh/known_hosts
+# # Create SSH key file from environment variable and set permissions
+# - echo "$SSH_PRIVATE_KEY" > dodokey.pem
+# - chmod 600 dodokey.pem
+# SSH into the EC2 instance and:
+# 1. List all running Docker containers (docker ps)
+# 2. Stop all running containers (docker stop)
+# 3. Remove all containers (docker rm -f)
+# - ssh -o StrictHostKeyChecking=no -i dodokey.pem ubuntu@ec2-${DASHED_IP}.ap-south-1.compute.amazonaws.com "sudo docker ps && sudo docker rm -f \$(sudo docker stop \$(sudo docker ps -a -q))"
+# artifacts:
+#   paths:
+#     - dodokey.pem
+#     - ip.env
+#   expire_in: 1 day
 
 # spin up the latest code structure application
 # start_new_infra:
@@ -93,7 +94,7 @@ stop_existing_infra:
 
 # remove image older than 48h from runner
 deprecated_image:
-  stage: cleanup
+  stage: runner_cleanup
   tags:
     - dodo-group-runner
   script:
