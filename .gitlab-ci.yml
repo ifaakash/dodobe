@@ -54,7 +54,7 @@ stop_existing_infra:
     # Get the public IP of the EC2 instance tagged with project=dodo-backend-backup
     # --filters "Name=key:project, Values=dodo-backend-backup" \
     # Fetch the IP of dodo-backend instance and CREATE AMI AND ASG FROM THAT (next scope of development)
-    - PUBLIC_IP=$(aws ec2 describe-instances --filters "Name=key:Name, Values=dodo-backend" --query "Reservations[*].Instances[*].PublicIpAddress" --output text)
+    - PUBLIC_IP=$(aws ec2 describe-instances --filters "Name=tag:Name, Values=dodo-backend" --query "Reservations[*].Instances[*].PublicIpAddress" --output text)
     # Export the IP as environment variables for later use
     - export BACKEND_IP=$PUBLIC_IP
     # Convert IP dots to dashes for AWS hostname format
