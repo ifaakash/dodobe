@@ -849,4 +849,38 @@ export class BlockController {
       res.status(500).json({ error: "Internal server error" });
     }
   }
+
+
+  // Add Auth for userID
+  public static async pollResponses(
+    req: Request<{}, {}, { blockId: string }>,
+    res: Response
+  ): Promise<void> {
+    const { blockId } = req.body;
+
+    try {
+      const pollBlock = await PollBlockModel.findOne({ blockId });
+
+      if (!pollBlock) {
+        res.status(404).json({
+          success: false,
+          message: "Poll block not found",
+        });
+        return;
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Poll responses retrieved successfully",
+        pollBlock
+      });
+    } catch (error) {
+      logger.error("Error in pollResponses:", error);
+      res.status(500).json({
+          success: false,
+          message: "Internal server error: " + error,
+      });
+    }
+  }
+
 }

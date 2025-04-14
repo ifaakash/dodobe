@@ -65,4 +65,6 @@ router.get(
 // Vote in Poll (for public access)
 pollVoteRouter.post("/", BlockController.pollVote as RequestHandler);
 
+router.post('/get-poll-responses', BlockController.pollResponses as RequestHandler);
+
 export { router as blockRouter, pollVoteRouter };
