@@ -65,7 +65,7 @@ export class AuthController {
                 userId : newUser._id,
                 amount : 200,
                 transactionType : TransactionType.EARNED,
-                description : 'Earned from creating page',
+                description : 'Dodo page created',
                 milestoneType : CoinMilestoneType.CREATE_DODO_PAGE,
             });
             // Update user's dodoCoins
