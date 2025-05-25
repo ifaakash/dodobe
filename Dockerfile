@@ -1,5 +1,5 @@
 # Base image
-FROM node:18-slim as builder
+FROM node@sha256:f9ab18e354e6855ae56ef2b290dd225c1e51a564f87584b9bd21dd651838830e as builder
 WORKDIR /app
 
 # install the required build packages that are not in slim image and pnpm
@@ -16,7 +16,7 @@ COPY . .
 RUN pnpm build
 
 # Runner state to only copy the required code
-FROM node:18-slim as runner
+FROM node@sha256:f9ab18e354e6855ae56ef2b290dd225c1e51a564f87584b9bd21dd651838830e as runner
 
 WORKDIR /app
 
