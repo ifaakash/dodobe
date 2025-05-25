@@ -1,6 +1,6 @@
 # Dodo Backend
 
-A Node.js backend service for managing dodo :) 
+A Node.js backend service for managing dodo :)
 
 ## Project Structure
 ```
@@ -142,7 +142,7 @@ docker compose up
 - Audio (mp3, wav)
 
 ### File upload configuration:
-- Maximum file size: 5MB
+- Maximum file size: 10MB
 - Storage: Local filesystem
 - Custom file filter for type validation
 
@@ -159,11 +159,8 @@ Errors are logged using Winston logger and return appropriate HTTP status codes.
 ## Contributing
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+2. Create your feature branch (`git checkout -b feat/amazing-feature`)
+3. Tag the commit for pushing to a particular environment (`git tag production-v1.0` or `git tag development-v1.0`)
 3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
+4. Push to the branch (`git push origin feat/amazing-feature`)
 5. Open a Pull Request
-
-## License
-
-MIT
