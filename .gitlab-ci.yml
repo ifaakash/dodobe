@@ -45,8 +45,8 @@ build_deploy_prod:
     - docker images
     - docker push $PROD_IMAGE_NAME:$PROD_IMAGE_TAG
     - aws autoscaling start-instance-refresh --auto-scaling-group-name dodo-backend-backup-asg
-    - docker tag $PROD_IMAGE_NAME:$PROD_IMAGE_TAG $PROD_IMAGE_NAME:$(date +%Y%m%d)
-    - docker push $PROD_IMAGE_NAME:$(date +%Y%m%d)
+    - docker tag $PROD_IMAGE_NAME:$PROD_IMAGE_TAG $PROD_IMAGE_NAME:$(date +%Y-%m-%d)
+    - docker push $PROD_IMAGE_NAME:$(date +%Y-%m-%d)
 
 build_deploy_dev:
   stage: build_and_deploy
@@ -66,8 +66,8 @@ build_deploy_dev:
     - docker images
     - docker push $DEV_IMAGE_NAME:$DEV_IMAGE_TAG
     # Tag the development image with custom tag
-    - docker tag $DEV_IMAGE_NAME:$DEV_IMAGE_TAG $DEV_IMAGE_NAME:$(date +%Y%m%d)
-    - docker push $DEV_IMAGE_NAME:$(date +%Y%m%d)
+    - docker tag $DEV_IMAGE_NAME:$DEV_IMAGE_TAG $DEV_IMAGE_NAME:$(date +%Y-%m-%d)
+    - docker push $DEV_IMAGE_NAME:$(date +%Y-%m-%d)
 
 # Cleanup runner for any image
 deprecated_image:
