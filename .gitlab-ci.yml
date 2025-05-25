@@ -1,23 +1,25 @@
 stages:
-  - runner_up
-  - build_cum_deploy
-  - deploy_dev
-  - runner_cleanup
-  - runner_down
+  - runner_startup
+  - build_and_deploy
+  - cleanup_runner
+  - runner_shutdown
 
 variables:
   AWS_DEFAULT_REGION: "ap-south-1" # mumbai region for AWS
-  IMAGE_NAME: "registry.gitlab.com/dodo1604703/dodobe/feat/refactor"
-  IMAGE_TAG: "publish"
+  PROD_IMAGE_NAME: "registry.gitlab.com/dodo1604703/dodobe/production"
+  DEV_IMAGE_NAME: "registry.gitlab.com/dodo1604703/dodobe/development"
+  # The production auto scaling group is set to pick image with tag publish only
+  PROD_IMAGE_TAG: "publish" # Don't change this
+  DEV_IMAGE_TAG: "${CI_COMMIT_TAG}"
 
 # cache node modules for faster builds
 cache:
   paths:
     - node_modules/
 
-# start the runner for image building foundation
+# start the runner for image building
 start_ec2:
-  stage: runner_up
+  stage: runner_startup
   image: python:3.9
   script:
     - pip install boto3
@@ -25,88 +27,62 @@ start_ec2:
     - python start_ec2.py
 
 # Build the image for the application and push to dockerhub
-build-application:
-  stage: build_cum_deploy
+build_deploy_prod:
+  stage: build_and_deploy
   tags:
     - dodo-group-runner
   image: bitnami/git:latest
+  # Run the branch only if the commit tag has regex like production-*( starting with production )
+  rules:
+    - if: "$CI_COMMIT_TAG =~ /^production-.*$/"
+      when: always
+    - when: never
   before_script:
     - unset DOCKER_HOST
     - docker login $GITLAB_REGISTRY -u $GITLAB_USERNAME -p $REGISTRY_PASSWORD
   script:
-    - docker build -t $IMAGE_NAME:$IMAGE_TAG .
-    # - sudo docker tag $IMAGE_NAME:latest $IMAGE_NAME:$CI_COMMIT_SHORT_SHA
-    # - sudo docker tag $IMAGE_NAME:latest $IMAGE_NAME:$(date +%Y%m%d-%H%M%S)
+    - docker build -t $PROD_IMAGE_NAME:$PROD_IMAGE_TAG .
     - docker images
-    - docker push $IMAGE_NAME:$IMAGE_TAG
+    - docker push $PROD_IMAGE_NAME:$PROD_IMAGE_TAG
     - aws autoscaling start-instance-refresh --auto-scaling-group-name dodo-backend-backup-asg
-    # - sudo docker push $IMAGE_NAME:$CI_COMMIT_SHORT_SHA
+    - docker tag $PROD_IMAGE_NAME:$PROD_IMAGE_TAG $PROD_IMAGE_NAME:$(date +%Y%m%d)
+    - docker push $PROD_IMAGE_NAME:$(date +%Y%m%d)
 
-# stop existing containers with {latest-1} code structure
-# stop_existing_infra:
-#   stage: deploy_dev
-#   tags:
-#     - dodo-group-runner
-#   # allow job to fail as there might be case that there is no container running, so we proceed with deployment
-#   allow_failure: true
-#   # image: amazon/aws-cli
-#   image: bitnami/minideb:latest
-#   script:
-#     - aws autoscaling start-instance-refresh --auto-scaling-group-name dodo-backend-backup-asg
-# Get the public IP of the EC2 instance tagged with project=dodo-backend-backup
-# --filters "Name=key:project, Values=dodo-backend-backup" \
-# Fetch the IP of dodo-backend instance and CREATE AMI AND ASG FROM THAT (next scope of development)
-# - PUBLIC_IP=$(aws ec2 describe-instances --filters "Name=tag:Name, Values=dodo-backend" --query "Reservations[*].Instances[*].PublicIpAddress" --output text)
-# # Export the IP as environment variables for later use
-# - export BACKEND_IP=$PUBLIC_IP
-# # Convert IP dots to dashes for AWS hostname format
-# - export DASHED_IP=$(echo $PUBLIC_IP | tr '.' '-')
-# # Add the instance to known hosts to avoid host key verification prompts
-# - ssh-keyscan -H $BACKEND_IP >> ~/.ssh/known_hosts
-# # Create SSH key file from environment variable and set permissions
-# - echo "$SSH_PRIVATE_KEY" > dodokey.pem
-# - chmod 600 dodokey.pem
-# SSH into the EC2 instance and:
-# 1. List all running Docker containers (docker ps)
-# 2. Stop all running containers (docker stop)
-# 3. Remove all containers (docker rm -f)
-# - ssh -o StrictHostKeyChecking=no -i dodokey.pem ubuntu@ec2-${DASHED_IP}.ap-south-1.compute.amazonaws.com "sudo docker ps && sudo docker rm -f \$(sudo docker stop \$(sudo docker ps -a -q))"
-# artifacts:
-#   paths:
-#     - dodokey.pem
-#     - ip.env
-#   expire_in: 1 day
+build_deploy_dev:
+  stage: build_and_deploy
+  # Tag for the runner to pick this job
+  tags:
+    - dodo-group-runner
+  image: bitnami/git:latest
+  rules:
+    - if: "$CI_COMMIT_TAG =~ /^development-.*$/"
+      when: always
+    - when: never
+  before_script:
+    - unset DOCKER_HOST
+    - docker login $GITLAB_REGISTRY -u $GITLAB_USERNAME -p $REGISTRY_PASSWORD
+  script:
+    - docker build -t $DEV_IMAGE_NAME:$DEV_IMAGE_TAG .
+    - docker images
+    - docker push $DEV_IMAGE_NAME:$DEV_IMAGE_TAG
+    # Tag the development image with custom tag
+    - docker tag $DEV_IMAGE_NAME:$DEV_IMAGE_TAG $DEV_IMAGE_NAME:$(date +%Y%m%d)
+    - docker push $DEV_IMAGE_NAME:$(date +%Y%m%d)
 
-# spin up the latest code structure application
-# start_new_infra:
-#   stage: deploy_dev
-#   tags:
-#     - dodo-group-runner
-#   dependencies:
-#     - stop_existing_infra
-#   script:
-#     # - apt update && apt install -y sudo openssh-client\
-#     - PUBLIC_IP=$(aws ec2 describe-instances --filters "Name=tag:Name, Values=dodo-backend" --query "Reservations[*].Instances[*].PublicIpAddress" --output text)
-#     - DASHED_IP=$(echo $PUBLIC_IP | tr '.' '-')
-#     - echo "$SSH_PRIVATE_KEY" > dodokey.pem
-#     - chmod 600 dodokey.pem
-#     - ssh -o StrictHostKeyChecking=no -i dodokey.pem ubuntu@ec2-$DASHED_IP.ap-south-1.compute.amazonaws.com "sudo docker images -q | grep . && sudo docker rmi -f \$(sudo docker images -aq) || echo 'No images to remove'; sudo docker pull registry.gitlab.com/dodo1604703/dodobe/feat/refactor:v1.0 && sudo docker images && sudo docker run -d -p 3001:3002 -e AWS_REGION=$AWS_REGION -e S3_BUCKET_NAME=$S3_BUCKET_NAME -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_S3 -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_S3 --log-driver=awslogs --log-opt awslogs-group=dodo-backend --log-opt awslogs-stream=dodo-backend-logs --restart=always registry.gitlab.com/dodo1604703/dodobe/feat/refactor:publish"
-
-# remove image older than 48h from runner
+# Cleanup runner for any image
 deprecated_image:
-  stage: runner_cleanup
+  stage: cleanup_runner
   tags:
     - dodo-group-runner
   script:
     - docker image prune -a --filter "until=48h" -f
-    #   - sudo docker rmi -f $(sudo docker images "registry.gitlab.com/dodo1604703/dodobe/feat/refactor:*" -q | grep -v $(sudo docker images "registry.gitlab.com/dodo1604703/dodobe/feat/refactor:latest" -q))
-    - docker images registry.gitlab.com/dodo1604703/dodobe/feat/refactor --format '{{.ID}} {{.Tag}}' | grep -v ' latest$' | awk '{print $1}' | xargs -r docker rmi -f || true
+    - docker rmi -f $(docker images -q) || true
     - echo "Updated list of image in RUNNER instance"
     - docker images
 
 # stop the runner after deployment
 stop_ec2:
-  stage: runner_down
+  stage: runner_shutdown
   image: python:3.9
   script:
     - pip install boto3
