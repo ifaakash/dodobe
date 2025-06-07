@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.HeadingBlockModel = exports.ProductBlockModel = exports.PollBlockModel = exports.LinkBlockModel = exports.BadgeModel = exports.BlockModel = void 0;
+exports.SeparatorBlockModel = exports.HeadingBlockModel = exports.ProductBlockModel = exports.PollBlockModel = exports.LinkBlockModel = exports.BadgeModel = exports.BlockModel = void 0;
 const mongoose_1 = require("mongoose");
 const schema_1 = require("./schema");
 const BlockModel = (0, mongoose_1.model)("Block", schema_1.blockSchema);
@@ -15,3 +15,5 @@ const ProductBlockModel = (0, mongoose_1.model)("ProductBlock", schema_1.product
 exports.ProductBlockModel = ProductBlockModel;
 const HeadingBlockModel = (0, mongoose_1.model)("HeadingBlock", schema_1.headingBlockSchema);
 exports.HeadingBlockModel = HeadingBlockModel;
+const SeparatorBlockModel = (0, mongoose_1.model)("SeparatorBlock", schema_1.separatorBlockSchema);
+exports.SeparatorBlockModel = SeparatorBlockModel;

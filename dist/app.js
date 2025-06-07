@@ -16,18 +16,40 @@ const app = (0, express_1.default)();
 exports.app = app;
 // Middleware
 app.use((0, cors_1.default)());
-app.use(body_parser_1.default.json());
+app.use(body_parser_1.default.json({
+    type: ["application/json", "application/json; charset=utf-8"],
+}));
+// For raw blob data (may be needed for some Beacon implementations)
+app.use(body_parser_1.default.raw({
+    type: "application/json",
+    limit: "1mb", // Adjust limit as needed
+}));
 app.use(body_parser_1.default.urlencoded({ extended: true }));
+// Add endpoint logging middleware
+app.use(logger_1.logEndpoint);
 // Static file serving
 app.use("/uploads", express_1.default.static("uploads"));
 // Routes
 app.use(routes_1.apiRouter);
 // Error handling middleware
 app.use((err, req, res, next) => {
-    logger_1.logger.error("Unhandled error:", err);
+    // Use the enhanced logger for errors
+    logger_1.logger.error({
+        type: "error",
+        message: err.message,
+        stack: err.stack,
+        method: req.method,
+        url: req.originalUrl,
+        ip: req.ip ||
+            req.headers["x-forwarded-for"] ||
+            req.connection.remoteAddress,
+        body: req.body,
+        params: req.params,
+        query: req.query,
+    });
     res.status(500).json({
         success: false,
-        message: "Internal server error",
+        message: "Internal server error: " + err.message,
     });
 });
 // Only start the server if we're not in a test environment
@@ -44,6 +66,11 @@ if (process.env.NODE_ENV !== 'test') {
     });
 }
 app.get('/api/resource', (req, res) => {
-    console.log('API hit');
-    res.status(200).json({ message: 'Success' });
+    // Replace console.log with logger
+    logger_1.logger.info({
+        type: "custom",
+        message: "API hit",
+        endpoint: "/api/resource",
+    });
+    res.status(200).json({ message: "Success" });
 });

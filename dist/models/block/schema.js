@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.headingBlockSchema = exports.productBlockSchema = exports.pollBlockSchema = exports.linkBlockSchema = exports.badgeSchema = exports.blockSchema = void 0;
+exports.separatorBlockSchema = exports.headingBlockSchema = exports.productBlockSchema = exports.pollBlockSchema = exports.linkBlockSchema = exports.badgeSchema = exports.blockSchema = void 0;
 const mongoose_1 = require("mongoose");
 const block_1 = require("../../types/block");
 const blockSchema = new mongoose_1.Schema({
@@ -29,6 +29,7 @@ exports.blockSchema = blockSchema;
 const badgeSchema = new mongoose_1.Schema({
     text: { type: String, required: true },
     color: { type: String, required: true },
+    backgroundColor: { type: String, required: true },
 }, {
     timestamps: true,
 });
@@ -39,6 +40,7 @@ const linkBlockSchema = new mongoose_1.Schema({
     linkDisplayPicture: String,
     url: { type: String, required: true },
     badge: { type: mongoose_1.Schema.Types.ObjectId, ref: "Badge" },
+    blockCardSize: { type: String, required: true },
 }, {
     timestamps: true,
 });
@@ -48,18 +50,14 @@ const pollBlockSchema = new mongoose_1.Schema({
     question: { type: String, required: true },
     options: [{ type: String, required: true }],
     isMultipleOptionsAllowed: { type: Boolean, default: false },
-    optionCounts: {
-        type: Map,
-        of: Number,
-        default: {},
-    },
+    optionCounts: { type: Object, required: true, default: {} },
 }, {
     timestamps: true,
 });
 exports.pollBlockSchema = pollBlockSchema;
 const productBlockSchema = new mongoose_1.Schema({
     blockId: { type: mongoose_1.Schema.Types.ObjectId, ref: "Block", required: true },
-    productImage: { type: String, required: true },
+    productImage: String,
     title: { type: String, required: true },
     link: { type: String, required: true },
 }, {
@@ -73,3 +71,10 @@ const headingBlockSchema = new mongoose_1.Schema({
     timestamps: true,
 });
 exports.headingBlockSchema = headingBlockSchema;
+const separatorBlockSchema = new mongoose_1.Schema({
+    blockId: { type: mongoose_1.Schema.Types.ObjectId, ref: "Block", required: true },
+    separatorType: { type: String, required: true },
+}, {
+    timestamps: true,
+});
+exports.separatorBlockSchema = separatorBlockSchema;

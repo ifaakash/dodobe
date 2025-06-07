@@ -17,3 +17,4 @@ Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./user/model"), exports);
 __exportStar(require("./block/model"), exports);
 __exportStar(require("./invoice/model"), exports);
+__exportStar(require("./dodoCoin/model"), exports);

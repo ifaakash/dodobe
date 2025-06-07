@@ -20,10 +20,28 @@ class FileManager {
     static async replaceFile(oldFilePath, newFilePath) {
         await this.deleteFile(oldFilePath);
     }
-    static getFileUrl(filePath) {
-        if (!filePath)
-            return undefined;
-        return `${process.env.API_BASE_URL}/${filePath}`;
+    static getFileUrl(s3Url) {
+        return s3Url; // Directly return S3 URL
+    }
+    static async fileExists(filePath) {
+        try {
+            await promises_1.default.access(filePath);
+            return true;
+        }
+        catch {
+            return false;
+        }
+    }
+    static async ensureDirectoryExists(dirPath) {
+        try {
+            await promises_1.default.access(dirPath);
+        }
+        catch {
+            await promises_1.default.mkdir(dirPath, { recursive: true });
+        }
+    }
+    static async createEmptyFile(filePath) {
+        await promises_1.default.writeFile(filePath, "");
     }
 }
 exports.FileManager = FileManager;

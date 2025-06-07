@@ -11,11 +11,11 @@ const envFile = process.env.NODE_ENV === "test" ? ".env.test" : ".env";
 dotenv_1.default.config({ path: path_1.default.resolve(process.cwd(), envFile) });
 exports.config = {
     env: process.env.NODE_ENV || "development",
-    port: parseInt(process.env.PORT || "3001", 10),
+    port: 3002,
     mongoUri: process.env.MONGODB_URI || "mongodb://localhost:27017/dodo",
-    jwtSecret: process.env.JWT_SECRET || "your-secret-key",
+    jwtSecret: process.env.JWT_SECRET || "your-default-secret-key-for-development",
     uploadDir: process.env.UPLOAD_DIR || "uploads",
-    baseUrl: process.env.BASE_URL || "http://localhost:3001",
+    baseUrl: process.env.BASE_URL || "http://localhost:3002",
 };
 // Test environment specific overrides
 if (process.env.NODE_ENV === "test") {

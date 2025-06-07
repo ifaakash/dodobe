@@ -10,7 +10,7 @@ const connectDB = async () => {
     try {
         // add ?authSource=admin for local mongo
         const mongoURI = process.env.MONGODB_URI ||
-            "mongodb://admin:password@localhost:27017/dodopage?authSource=admin";
+            "mongodb+srv://dodo:dodopassword@dodo-cluster.lkk05.mongodb.net/?retryWrites=true&w=majority&appName=dodo-cluster";
         await mongoose_1.default.connect(mongoURI, {
             serverSelectionTimeoutMS: 5000,
             socketTimeoutMS: 45000,

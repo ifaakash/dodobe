@@ -7,6 +7,9 @@ const supertest_1 = __importDefault(require("supertest"));
 const app_1 = require("../../../app");
 const models_1 = require("../../../models");
 const mongoose_1 = __importDefault(require("mongoose"));
+const models_2 = require("../../../models");
+const dodoCoin_1 = require("../../../types/dodoCoin");
+const helpers_1 = require("@/test/helpers");
 describe("AuthController", () => {
     describe("POST /api/v1/auth/register", () => {
         it("should register a new user", async () => {
@@ -14,7 +17,7 @@ describe("AuthController", () => {
                 .post("/api/v1/auth/register")
                 .send({
                 mobileNumber: "+919876543210",
-                otplessId: "test-otpless-id",
+                firebaseUid: "test-firebaseUid-id",
             });
             expect(response.status).toBe(201);
             expect(response.body.success).toBe(true);
@@ -23,7 +26,7 @@ describe("AuthController", () => {
                 mobileNumber: "+919876543210",
             });
             expect(user).toBeDefined();
-            expect(user?.otplessId).toBe("test-otpless-id");
+            expect(user?.firebaseUid).toBe("test-firebaseUid-id");
         });
     });
     describe("POST /api/v1/auth/complete-profile", () => {
@@ -33,7 +36,7 @@ describe("AuthController", () => {
                 .post("/api/v1/auth/register")
                 .send({
                 mobileNumber: "+919876543210",
-                otplessId: "test-otpless-id",
+                firebaseUid: "test-firebaseUid-id",
             });
             const userId = registerResponse.body.userId;
             // Complete profile
@@ -64,7 +67,7 @@ describe("AuthController", () => {
                 .post("/api/v1/auth/register")
                 .send({
                 mobileNumber: "+919876543210",
-                otplessId: "test-otpless-id",
+                firebaseUid: "test-firebaseUid-id",
             });
             const userId = registerResponse.body.userId;
             // Complete profile
@@ -87,7 +90,7 @@ describe("AuthController", () => {
             expect(response.body.user).toBeDefined();
             expect(response.body.user.name).toBe("Test User");
             expect(response.body.user.mobileNumber).toBe("+919876543210");
-            expect(response.body.user.otplessId).toBe("test-otpless-id");
+            expect(response.body.user.firebaseUid).toBe("test-firebaseUid-id");
             expect(response.body.user.interestCategories).toEqual([
                 "coding",
                 "testing",
@@ -115,6 +118,44 @@ describe("AuthController", () => {
             expect(response.body).toEqual({
                 success: false,
                 message: "Invalid user ID format",
+            });
+        });
+        it("should return user details with dodo coins and transactions", async () => {
+            // Create a user with some coin transactions
+            const user = await (0, helpers_1.createTestUser)();
+            // Create some transactions
+            await models_2.CoinTransactionModel.create([
+                {
+                    userId: user._id,
+                    amount: 50,
+                    transactionType: dodoCoin_1.TransactionType.EARNED,
+                    description: "Test earning",
+                },
+                {
+                    userId: user._id,
+                    amount: 30,
+                    transactionType: dodoCoin_1.TransactionType.SPENT,
+                    description: "Test spending",
+                },
+            ]);
+            // Update user with coins
+            await models_1.UserModel.findByIdAndUpdate(user._id, {
+                dodoCoins: 100,
+            }, { new: true });
+            const response = await (0, supertest_1.default)(app_1.app).get(`/api/v1/auth/user/${user._id}`);
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+            expect(response.body.user.dodoCoins).toBe(100);
+            expect(response.body.user.coinTransactions).toHaveLength(2);
+            expect(response.body.user.coinTransactions[0]).toMatchObject({
+                amount: 50,
+                transactionType: dodoCoin_1.TransactionType.EARNED,
+                description: "Test earning",
+            });
+            expect(response.body.user.coinTransactions[1]).toMatchObject({
+                amount: 30,
+                transactionType: dodoCoin_1.TransactionType.SPENT,
+                description: "Test spending",
             });
         });
     });

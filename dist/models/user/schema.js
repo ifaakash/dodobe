@@ -5,7 +5,7 @@ const mongoose_1 = require("mongoose");
 const userSchema = new mongoose_1.Schema({
     name: { type: String },
     mobileNumber: { type: String, required: true },
-    otplessId: { type: String, unique: true, sparse: true },
+    firebaseUid: { type: String, unique: true, sparse: true },
     dodoPages: [{ type: mongoose_1.Schema.Types.ObjectId, ref: "DodoPage" }],
     interestCategories: [
         { type: mongoose_1.Schema.Types.ObjectId, ref: "UserInterestCategory" },
@@ -15,6 +15,18 @@ const userSchema = new mongoose_1.Schema({
     clientDetails: [{ type: mongoose_1.Schema.Types.ObjectId, ref: "ClientDetail" }],
     recipientDetails: [
         { type: mongoose_1.Schema.Types.ObjectId, ref: "RecipientDetail" },
+    ],
+    dodoCoins: {
+        type: Number,
+        default: 0,
+        min: 0,
+    },
+    coinTransactions: [
+        {
+            type: mongoose_1.Schema.Types.ObjectId,
+            ref: "CoinTransaction",
+            default: [],
+        },
     ],
 }, {
     timestamps: true,

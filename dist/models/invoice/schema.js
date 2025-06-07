@@ -44,6 +44,7 @@ const recipientDetailSchema = new mongoose_1.Schema({
 exports.recipientDetailSchema = recipientDetailSchema;
 const clientDetailSchema = new mongoose_1.Schema({
     userId: { type: mongoose_1.Schema.Types.ObjectId, ref: "User", required: true },
+    email: { type: String, required: true },
     name: { type: String, required: true },
     state: { type: String, required: true },
     city: { type: String, required: true },
@@ -57,14 +58,18 @@ const clientDetailSchema = new mongoose_1.Schema({
 });
 exports.clientDetailSchema = clientDetailSchema;
 const invoiceSchema = new mongoose_1.Schema({
-    invoiceNumber: { type: String, required: true, unique: true },
+    invoiceNumber: { type: Number, required: true },
     userId: { type: mongoose_1.Schema.Types.ObjectId, ref: "User", required: true },
     items: [{ type: mongoose_1.Schema.Types.ObjectId, ref: "Item" }],
+    subHeading: {
+        type: String,
+        default: "",
+    },
     discount: { type: Number, default: 0 },
     note: String,
     date: { type: Date, required: true },
     dueDate: { type: Date, required: true },
-    gst: { type: Number, required: true },
+    gst: { type: Number },
     tds: { type: Number },
     status: {
         type: String,

@@ -8,6 +8,8 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const app_1 = require("../app");
 const block_1 = require("@/routes/block");
 const auth_1 = require("@/routes/auth");
+const dodoPage_1 = require("@/routes/dodoPage");
+const promises_1 = __importDefault(require("fs/promises"));
 let mongo;
 // Increase timeout for setup
 jest.setTimeout(30000);
@@ -16,6 +18,9 @@ beforeAll(async () => {
         // Setup MongoDB Memory Server
         mongo = await mongodb_memory_server_1.MongoMemoryServer.create();
         const mongoUri = mongo.getUri();
+        // Create upload directories
+        await promises_1.default.mkdir("uploads/profiles", { recursive: true });
+        await promises_1.default.mkdir("uploads/audio", { recursive: true });
         // Close any existing connections
         await mongoose_1.default.disconnect();
         // Connect to the in-memory database
@@ -26,6 +31,7 @@ beforeAll(async () => {
         // Register routes for testing
         app_1.app.use("/api/v1/block", block_1.blockRouter);
         app_1.app.use("/api/v1/auth", auth_1.authRouter);
+        app_1.app.use("/api/v1/dodo-page", dodoPage_1.dodoPageRouter);
     }
     catch (error) {
         console.error("Error in test setup:", error);
@@ -49,6 +55,8 @@ beforeEach(async () => {
 });
 afterAll(async () => {
     try {
+        // Clean up upload directories
+        await promises_1.default.rm("uploads", { recursive: true, force: true });
         if (mongoose_1.default.connection) {
             await mongoose_1.default.connection.close();
         }
