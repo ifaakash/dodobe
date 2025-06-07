@@ -26,7 +26,7 @@ export const MediaKitController = {
     try {
       await MediaKitModel.findOneAndUpdate(
         { instaId },
-        { instaId, linkUrl },
+        { linkUrl },
         { upsert: true, new: true }
       );
 
@@ -39,6 +39,7 @@ export const MediaKitController = {
       return res.status(500).json({
         success: false,
         message: "Internal Server Error",
+        error: (error as Error).message,
       });
     }
   },
@@ -76,10 +77,12 @@ export const MediaKitController = {
       return res.status(500).json({
         success: false,
         message: "Internal Server Error",
+        error: (error as Error).message,
       });
     }
   },
 
+  // GET /details?instaId=some_id
   async details(
     req: Request<{}, {}, {}, CheckVerifiedRequestQuery>,
     res: Response<MediaKitDetailsResponse>
@@ -122,6 +125,7 @@ export const MediaKitController = {
       return res.status(500).json({
         success: false,
         message: "Internal Server Error",
+        error: (error as Error).message,
       });
     }
   },
