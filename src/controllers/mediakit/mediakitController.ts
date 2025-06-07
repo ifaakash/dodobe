@@ -1,12 +1,22 @@
 import { Request, Response } from "express";
 import { MediaKitModel } from "../../models/mediakit/model";
+import {
+  VerifyRequestBody,
+  VerifyResponse,
+  CheckVerifiedRequestQuery,
+  CheckVerifiedResponse,
+  MediaKitDetailsResponse,
+} from "../../types/mediakit";
 
 export const MediaKitController = {
   // POST /verify
-  async verify(req: Request, res: Response) {
-    const { instaId, link } = req.body;
+  async verify(
+    req: Request<{}, {}, VerifyRequestBody>,
+    res: Response<VerifyResponse>
+  ) {
+    const { instaId, linkUrl } = req.body;
 
-    if (!instaId || !link) {
+    if (!instaId || !linkUrl) {
       return res.status(400).json({
         success: false,
         message: "Both instaId and link are required",
@@ -16,7 +26,7 @@ export const MediaKitController = {
     try {
       await MediaKitModel.findOneAndUpdate(
         { instaId },
-        { instaId, link },
+        { instaId, linkUrl },
         { upsert: true, new: true }
       );
 
@@ -34,7 +44,10 @@ export const MediaKitController = {
   },
 
   // GET /isverified?instaId=some_id
-  async checkVerified(req: Request, res: Response) {
+  async checkVerified(
+    req: Request<{}, {}, {}, CheckVerifiedRequestQuery>,
+    res: Response<CheckVerifiedResponse>
+  ) {
     const { instaId } = req.query;
 
     if (!instaId || typeof instaId !== "string") {
@@ -67,26 +80,29 @@ export const MediaKitController = {
     }
   },
 
-  async details(req: Request, res: Response) {
+  async details(
+    req: Request<{}, {}, {}, CheckVerifiedRequestQuery>,
+    res: Response<MediaKitDetailsResponse>
+  ) {
     const { instaId } = req.query;
-  
+
     if (!instaId || typeof instaId !== "string") {
       return res.status(400).json({
         success: false,
         message: "instaId is required and must be a string",
       });
     }
-  
+
     try {
       const mediaKit = await MediaKitModel.findOne({ instaId });
-  
+
       if (!mediaKit) {
         return res.status(404).json({
           success: false,
           message: "MediaKit not found for this instaId",
         });
       }
-  
+
       return res.status(200).json({
         success: true,
         data: {
@@ -108,5 +124,5 @@ export const MediaKitController = {
         message: "Internal Server Error",
       });
     }
-  }
+  },
 };

@@ -8,7 +8,7 @@ const router: Router = Router();
 router.post("/verify", MediaKitController.verify);
 
 // Protected route to check if the media kit is verified
-router.get("/isverified", authenticateUser, MediaKitController.checkVerified);
+router.get("/isverified", MediaKitController.checkVerified);
 router.get("/details", MediaKitController.details);
 
 export { router as mediakitRouter };
