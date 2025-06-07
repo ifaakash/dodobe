@@ -9,6 +9,7 @@ import { recipientRouter } from "./invoiceRoutes/recipient";
 import { dodoCoinRouter } from "./dodoCoin";
 import { authenticateUser } from "../middleware/auth";
 import { analyticsRouter } from "./analytics";
+import { mediakitRouter } from "./mediakitRouter"
 import contentRouter from "./contentRoutes";
 
 const router: Router = Router();
@@ -32,6 +33,10 @@ v1Router.use("/content", authenticateUser, contentRouter);
 
 v1Router.use("/invoice", invoiceRouter);
 v1Router.use("/analytics", analyticsRouter);
+
+
+// Mediakit
+v1Router.use("/mediakit", mediakitRouter);
 
 // Health check
 v1Router.get("/health", (req, res) => {
