@@ -11,4 +11,7 @@ router.post("/verify", MediaKitController.verify);
 router.get("/isverified", MediaKitController.checkVerified);
 router.get("/details", MediaKitController.details);
 
+// Route to add brand collaboration
+router.post("/brand-collab", authenticateUser, MediaKitController.addBrandCollab);
+
 export { router as mediakitRouter };
