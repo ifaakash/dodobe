@@ -48,7 +48,7 @@ jspm_packages/
 
 # TypeScript compiled output
 *.tsbuildinfo
-dist
+dist/
 build/
 out/
 bld/
