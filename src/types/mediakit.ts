@@ -58,3 +58,18 @@ export interface BrandCollabResponse {
   message: string;
   error?: string;
 }
+
+export type AnalyticsType = "content" | "gender" | "age" | "location";
+
+export interface UploadAnalyticsRequest {
+    instaId: string;
+    type: AnalyticsType;
+    // File will be handled by multer
+}
+
+export interface UploadAnalyticsResponse {
+    success: boolean;
+    data?: MediaKitDetailsResponse["data"]; // Reuse existing type for full mediakit data
+    message?: string;
+    error?: string;
+}
