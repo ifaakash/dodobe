@@ -1,5 +1,15 @@
 import { AnalyticsType } from "@/types/mediakit";
 import { logger } from "./logger";
+import axios from "axios";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+const AI_API_KEY = process.env.AI_API_KEY;
+
+if (!AI_API_KEY) {
+    throw new Error("AI_API_KEY is not configured in environment variables");
+}
 
 export class GeminiService {
     private static readonly PROMPTS = {
@@ -29,7 +39,68 @@ export class GeminiService {
     };
 
     static async extractAnalytics(imageBase64: string, type: AnalyticsType) {
-        // ... reuse existing Gemini API call logic from contentController.ts
-        // but with type-specific prompts and response parsing
+        try {
+            const prompt = this.PROMPTS[type];
+
+            const body = {
+                contents: [
+                    {
+                        parts: [
+                            {
+                                inline_data: {
+                                    mime_type: "image/jpeg",
+                                    data: imageBase64,
+                                },
+                            },
+                            {
+                                text: prompt,
+                            },
+                        ],
+                    },
+                ],
+            };
+
+            logger.info(`Making request to Gemini API for ${type} analytics`);
+
+            const response = await axios.post(
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${AI_API_KEY}`,
+                body,
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                }
+            );
+
+            logger.info(
+                `Received response from Gemini API for ${type} analytics:`,
+                response.data
+            );
+
+            const generatedContent =
+                response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+            if (!generatedContent) {
+                throw new Error(
+                    "No content generated from Gemini API response"
+                );
+            }
+
+            // Parse the JSON response
+            try {
+                const parsedData = JSON.parse(generatedContent);
+                return parsedData;
+            } catch (parseError) {
+                logger.error("Error parsing Gemini API response:", parseError);
+                throw new Error("Invalid JSON response from Gemini API");
+            }
+        } catch (error) {
+            logger.error(`Error extracting ${type} analytics:`, error);
+            throw error instanceof Error
+                ? error
+                : new Error(
+                      "Unknown error occurred while extracting analytics"
+                  );
+        }
     }
 }
