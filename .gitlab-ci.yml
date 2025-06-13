@@ -41,7 +41,7 @@ build_deploy_prod:
     - unset DOCKER_HOST
     - docker login $GITLAB_REGISTRY -u $GITLAB_USERNAME -p $REGISTRY_PASSWORD
   script:
-    - docker build -t $PROD_IMAGE_NAME:$PROD_IMAGE_TAG .
+    - docker build -t $PROD_IMAGE_NAME:$PROD_IMAGE_TAG --file=Dockerfile .
     - docker images
     - docker push $PROD_IMAGE_NAME:$PROD_IMAGE_TAG
     - aws autoscaling start-instance-refresh --auto-scaling-group-name dodo-backend-backup-asg
