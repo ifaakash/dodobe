@@ -34,7 +34,11 @@ build_deploy_prod:
   image: bitnami/git:latest
   # Run the branch only if the commit tag has regex like production-*( starting with production )
   rules:
+    # Trigger the deployment when the push is directly made to production branch
     - if: "$CI_COMMIT_TAG =~ /^production-.*$/"
+      when: always
+    # Trigger the deployment when a Merge request is raised to production branch
+    - if: '$CI_PIPELINE_SOURCE = "merge_request_event"'
       when: always
     - when: never
   before_script:

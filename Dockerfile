@@ -4,7 +4,7 @@ WORKDIR /app
 
 # install the required build packages that are not in slim image and pnpm
 RUN apt-get update && apt-get install -y curl git build-essential python3
-RUN npm install -g pnpm
+RUN npm install -g pnpm@8.15.4
 
 # Copy only whats needed for dependencies & Install
 COPY package*.json pnpm-lock.yaml ./
@@ -24,6 +24,8 @@ WORKDIR /app
 COPY --from=builder ./app/dist ./dist
 COPY --from=builder ./app/package*.json ./
 COPY --from=builder /app/pnpm-lock.yaml ./
+COPY --from=builder /app/src/docs ./src/docs
+COPY --from=builder /app/src/docs ./dist/docs
 
 # Install only production dependencies
 RUN npm install -g pnpm && pnpm install --prod --frozen-lockfile
