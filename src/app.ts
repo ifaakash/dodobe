@@ -39,7 +39,7 @@ const swaggerOptions = {
             },
         },
     },
-    apis: ["./src/docs/*.swagger.ts"], // Path to the API docs
+    apis: ["./src/docs/*.swagger.ts", "./dist/docs/*.swagger.js"], // Path to the API docs
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
@@ -124,7 +124,7 @@ if (process.env.NODE_ENV !== "test") {
         });
 }
 
-app.get('/api/resource', (req, res) => {
+app.get("/api/resource", (req, res) => {
     // Replace console.log with logger
     logger.info({
         type: "custom",
