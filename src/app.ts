@@ -22,11 +22,8 @@ const swaggerOptions = {
         },
         servers: [
             {
-                url: process.env.API_URL || `http://localhost:${config.port}`,
-                description:
-                    process.env.NODE_ENV === "production"
-                        ? "Production server"
-                        : "Development server",
+                url: "http://localhost:3002", // This will be dynamically updated
+                description: "API Server",
             },
         ],
         components: {
@@ -39,10 +36,12 @@ const swaggerOptions = {
             },
         },
     },
-    apis: ["./src/docs/*.swagger.ts", "./dist/docs/*.swagger.js"], // Path to the API docs
+    apis: ["./src/docs/*.swagger.ts", "./dist/docs/*.swagger.js"],
 };
 
-const swaggerSpec = swaggerJsdoc(swaggerOptions);
+const swaggerSpec = swaggerJsdoc(swaggerOptions) as {
+    servers: Array<{ url: string; description: string }>;
+};
 
 // Middleware
 app.use(cors());
@@ -65,8 +64,27 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Add endpoint logging middleware
 app.use(logEndpoint);
 
-// Swagger UI setup
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+// Swagger UI setup with dynamic server URL
+app.use(
+    "/api-docs",
+    (
+        req: express.Request,
+        res: express.Response,
+        next: express.NextFunction
+    ) => {
+        // Get the actual server URL from request headers
+        const protocol = req.headers["x-forwarded-proto"] || req.protocol;
+        const host = req.headers["x-forwarded-host"] || req.get("host");
+        const baseUrl = `${protocol}://${host}`;
+
+        // Update the server URL in the swagger spec
+        swaggerSpec.servers[0].url = baseUrl;
+
+        next();
+    },
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerSpec)
+);
 
 // Static file serving
 app.use("/uploads", express.static("uploads"));
@@ -112,9 +130,7 @@ if (process.env.NODE_ENV !== "test") {
             app.listen(config.port, () => {
                 logger.info(`Server running on port ${config.port}`);
                 logger.info(
-                    `Swagger documentation available at ${
-                        process.env.API_URL || `http://localhost:${config.port}`
-                    }/api-docs`
+                    `Swagger documentation available at http://localhost:${config.port}/api-docs`
                 );
             });
         })
