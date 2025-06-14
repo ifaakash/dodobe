@@ -10,6 +10,9 @@ const userSchema = new Schema<IUser>(
         interestCategories: [
             { type: Schema.Types.ObjectId, ref: "UserInterestCategory" },
         ],
+        whatsappNumber: { type: String, required: false },
+        alternatePhoneNumber: { type: String, required: false },
+        email: { type: String, required: false },
         bankDetails: [{ type: Schema.Types.ObjectId, ref: "BankDetail" }],
         invoices: [{ type: Schema.Types.ObjectId, ref: "Invoice" }],
         clientDetails: [{ type: Schema.Types.ObjectId, ref: "ClientDetail" }],
@@ -28,6 +31,11 @@ const userSchema = new Schema<IUser>(
                 default: [],
             },
         ],
+        mediaKit: {
+            type: Schema.Types.ObjectId,
+            ref: "MediaKit",
+            required: false,
+        },
     },
     {
         timestamps: true,

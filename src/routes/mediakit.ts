@@ -1,0 +1,36 @@
+import { Router } from "express";
+import { MediaKitController } from "../controllers/mediakit/mediakitController";
+import { authenticateUser } from "../middleware/auth";
+
+const router: Router = Router();
+
+// Public route to check if the media kit is verified
+router.get("/is-verified", MediaKitController.checkVerified);
+// Public route for verifying the media kit
+router.post("/verify", MediaKitController.verify);
+
+// Get media kit details by instaId
+router.get("/get-by-instaid/:instaId", MediaKitController.getDetailsByInstaId);
+
+// Create a new media kit
+router.post("/create", MediaKitController.createMediaKit);
+
+// Update an existing media kit details by instaId
+router.patch("/update", MediaKitController.updateMediaKit);
+
+// Authenticated routes
+// Route to add brand collaboration
+router.post(
+    "/add-brand-collab",
+    authenticateUser,
+    MediaKitController.addBrandCollab
+);
+
+// Link media kit to a user
+router.post(
+    "/link-mediakit-to-user",
+    authenticateUser,
+    MediaKitController.linkMediaKit
+);
+
+export { router as mediakitRouter };
