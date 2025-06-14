@@ -22,8 +22,26 @@ const swaggerOptions = {
         },
         servers: [
             {
-                url: "http://localhost:3002", // This will be dynamically updated
-                description: "API Server",
+                url: "http://localhost:3002",
+                description: "Local Development",
+            },
+            {
+                url: "https://api.dodoclub.in",
+                description: "Production API",
+            },
+            {
+                url: "https://dodobe.onrender.com",
+                description: "Render Deployment",
+            },
+            {
+                url: "https://{customUrl}",
+                description: "Custom Server (PR Preview)",
+                variables: {
+                    customUrl: {
+                        default: "your-pr-preview-url.com",
+                        description: "Enter your PR preview URL",
+                    },
+                },
             },
         ],
         components: {
@@ -40,7 +58,7 @@ const swaggerOptions = {
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions) as {
-    servers: Array<{ url: string; description: string }>;
+    servers: Array<{ url: string; description: string; variables?: any }>;
 };
 
 // Middleware
@@ -64,32 +82,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Add endpoint logging middleware
 app.use(logEndpoint);
 
-// Swagger UI setup with dynamic server URL
+// Swagger UI setup
 app.use(
     "/api-docs",
-    (
-        req: express.Request,
-        res: express.Response,
-        next: express.NextFunction
-    ) => {
-        // Get the actual server URL from request headers
-        const protocol = req.headers["x-forwarded-proto"] || req.protocol;
-        const host = req.headers["x-forwarded-host"] || req.get("host");
-        const baseUrl = `${protocol}://${host}`;
-
-        // Update the server URL in the swagger spec
-        swaggerSpec.servers = [
-            {
-                url: baseUrl,
-                description: "API Server",
-            },
-        ];
-
-        // Set the server URL in the response headers
-        res.setHeader("X-Swagger-Server-URL", baseUrl);
-
-        next();
-    },
     swaggerUi.serve,
     swaggerUi.setup(swaggerSpec, {
         swaggerOptions: {
@@ -102,18 +97,6 @@ app.use(
             defaultModelExpandDepth: 3,
             displayRequestDuration: true,
             tryItOutEnabled: true,
-            requestInterceptor: (req: any) => {
-                // Get the server URL from the response headers
-                const serverUrl = req.headers["x-swagger-server-url"];
-                if (serverUrl) {
-                    // Update the request URL to use the correct server
-                    req.url = req.url.replace(
-                        /^http:\/\/localhost:3002/,
-                        serverUrl
-                    );
-                }
-                return req;
-            },
         },
     })
 );
