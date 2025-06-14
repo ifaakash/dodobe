@@ -78,12 +78,44 @@ app.use(
         const baseUrl = `${protocol}://${host}`;
 
         // Update the server URL in the swagger spec
-        swaggerSpec.servers[0].url = baseUrl;
+        swaggerSpec.servers = [
+            {
+                url: baseUrl,
+                description: "API Server",
+            },
+        ];
+
+        // Set the server URL in the response headers
+        res.setHeader("X-Swagger-Server-URL", baseUrl);
 
         next();
     },
     swaggerUi.serve,
-    swaggerUi.setup(swaggerSpec)
+    swaggerUi.setup(swaggerSpec, {
+        swaggerOptions: {
+            url: "/api-docs/swagger.json",
+            persistAuthorization: true,
+            docExpansion: "none",
+            filter: true,
+            showCommonExtensions: true,
+            defaultModelsExpandDepth: -1,
+            defaultModelExpandDepth: 3,
+            displayRequestDuration: true,
+            tryItOutEnabled: true,
+            requestInterceptor: (req: any) => {
+                // Get the server URL from the response headers
+                const serverUrl = req.headers["x-swagger-server-url"];
+                if (serverUrl) {
+                    // Update the request URL to use the correct server
+                    req.url = req.url.replace(
+                        /^http:\/\/localhost:3002/,
+                        serverUrl
+                    );
+                }
+                return req;
+            },
+        },
+    })
 );
 
 // Static file serving
