@@ -5,12 +5,12 @@ import { authenticateUser } from "../middleware/auth";
 const router: Router = Router();
 
 // Public route to check if the media kit is verified
-router.get("/is-verified", MediaKitController.checkVerified);
+router.get("/is-verified/:instaId", MediaKitController.checkVerified);
 // Public route for verifying the media kit
 router.post("/verify", MediaKitController.verify);
 
 // Get media kit details by instaId
-router.get("/get-by-instaid/:instaId", MediaKitController.getDetailsByInstaId);
+router.get("/get-by-instaId/:instaId", MediaKitController.getDetailsByInstaId);
 
 // Create a new media kit
 router.post("/create", MediaKitController.createMediaKit);

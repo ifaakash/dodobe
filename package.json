@@ -17,6 +17,8 @@
     "license": "ISC",
     "dependencies": {
         "@aws-sdk/client-s3": "^3.744.0",
+        "@types/swagger-jsdoc": "^6.0.4",
+        "@types/swagger-ui-express": "^4.1.8",
         "axios": "^1.7.7",
         "body-parser": "^1.20.2",
         "cors": "^2.8.5",
@@ -28,6 +30,8 @@
         "multer": "^1.4.5-lts.1",
         "node": "^20.14.0",
         "qs": "^6.13.0",
+        "swagger-jsdoc": "^6.2.8",
+        "swagger-ui-express": "^5.0.1",
         "winston": "^3.17.0"
     },
     "devDependencies": {

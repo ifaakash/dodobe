@@ -5,9 +5,44 @@ import { apiRouter } from "./routes";
 import { config } from "./config";
 import { logger, logEndpoint } from "./utils/logger";
 import { connectDB } from "./config/database";
+import swaggerUi from "swagger-ui-express";
+import swaggerJsdoc from "swagger-jsdoc";
 
 // Create Express app
 const app = express();
+
+// Swagger configuration
+const swaggerOptions = {
+    definition: {
+        openapi: "3.0.0",
+        info: {
+            title: "Media Kit API",
+            version: "1.0.0",
+            description: "API documentation for Media Kit management",
+        },
+        servers: [
+            {
+                url: process.env.API_URL || `http://localhost:${config.port}`,
+                description:
+                    process.env.NODE_ENV === "production"
+                        ? "Production server"
+                        : "Development server",
+            },
+        ],
+        components: {
+            securitySchemes: {
+                bearerAuth: {
+                    type: "http",
+                    scheme: "bearer",
+                    bearerFormat: "JWT",
+                },
+            },
+        },
+    },
+    apis: ["./src/docs/*.swagger.ts"], // Path to the API docs
+};
+
+const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
 // Middleware
 app.use(cors());
@@ -29,6 +64,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // Add endpoint logging middleware
 app.use(logEndpoint);
+
+// Swagger UI setup
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Static file serving
 app.use("/uploads", express.static("uploads"));
@@ -68,11 +106,16 @@ app.use(
 );
 
 // Only start the server if we're not in a test environment
-if (process.env.NODE_ENV !== 'test') {
+if (process.env.NODE_ENV !== "test") {
     connectDB()
         .then(() => {
             app.listen(config.port, () => {
                 logger.info(`Server running on port ${config.port}`);
+                logger.info(
+                    `Swagger documentation available at ${
+                        process.env.API_URL || `http://localhost:${config.port}`
+                    }/api-docs`
+                );
             });
         })
         .catch((err) => {

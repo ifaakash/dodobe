@@ -53,12 +53,12 @@ export class MediaKitController {
         }
     }
 
-    // GET /isverified?instaId=some_id
+    // GET /is-verified/some_id
     public static async checkVerified(
-        req: Request<{}, {}, {}, CheckVerifiedRequestQuery>,
+        req: Request<{ instaId: string }>,
         res: Response<CheckVerifiedResponse>
     ) {
-        const { instaId } = req.query;
+        const { instaId } = req.params;
 
         if (!instaId || typeof instaId !== "string") {
             return res.status(400).json({
@@ -91,14 +91,14 @@ export class MediaKitController {
         }
     }
 
-    // GET /getDetailsByInstaId?instaId=some_id
+    // GET /get-by-instaId/some_id
     public static async getDetailsByInstaId(
-        req: Request<{}, {}, {}, CheckVerifiedRequestQuery>,
+        req: Request<{ instaId: string }>,
         res: Response<MediaKitDetailsResponse>
     ) {
-        const { instaId } = req.query;
+        const { instaId } = req.params;
 
-        if (!instaId || typeof instaId !== "string") {
+        if (!instaId) {
             return res.status(400).json({
                 success: false,
                 message: "instaId is required and must be a string",
