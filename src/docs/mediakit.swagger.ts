@@ -286,14 +286,14 @@
  * @swagger
  * /api/v1/mediakit/add-brand-collab:
  *   post:
- *     summary: Add a brand collaboration to a media kit
+ *     summary: Add a brand collaboration to the media kit
  *     tags: [MediaKit]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             required:
@@ -319,6 +319,10 @@
  *               engagement:
  *                 type: string
  *                 description: Engagement metrics
+ *               brandLogo:
+ *                 type: string
+ *                 format: binary
+ *                 description: Brand logo image file
  *     responses:
  *       200:
  *         description: Brand collaboration added successfully

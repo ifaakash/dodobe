@@ -1,6 +1,8 @@
 import { Router } from "express";
 import { MediaKitController } from "../controllers/mediakit/mediakitController";
 import { authenticateUser } from "../middleware/auth";
+import { upload } from "../middleware/fileUpload";
+import { handleFileUploadError } from "../middleware/errorHandler";
 
 const router: Router = Router();
 
@@ -23,6 +25,8 @@ router.patch("/update", MediaKitController.updateMediaKit);
 router.post(
     "/add-brand-collab",
     authenticateUser,
+    upload.single("brandLogo"),
+    handleFileUploadError,
     MediaKitController.addBrandCollab
 );
 

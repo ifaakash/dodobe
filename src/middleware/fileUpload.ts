@@ -38,7 +38,7 @@ export const upload = multer({
 
 export const uploadToS3 = async (
     file: Express.Multer.File,
-    folder: "dodo-profiles" | "dodo-audio" | "block-images"
+    folder: "dodo-profiles" | "dodo-audio" | "block-images" | "brand-logos"
 ) => {
     const params = {
         Bucket: process.env.S3_BUCKET_NAME!,

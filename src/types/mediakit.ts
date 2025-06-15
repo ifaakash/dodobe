@@ -1,13 +1,15 @@
 import { BaseDocument, ID } from "./common";
 
-export interface BrandCollab extends BaseDocument {
-    _id: ID;
+export interface BrandCollab {
     brandName: string;
     contentType: string;
     contentUrl?: string;
     reach?: string;
     engagement?: string;
+    brandLogo?: string;
     isActive: boolean;
+    createdAt?: Date;
+    updatedAt?: Date;
 }
 
 export interface ContentAnalytics {
@@ -116,7 +118,12 @@ export interface MediaKitDetailsResponse {
 
 export interface AddBrandCollabRequestBody {
     instaId: string;
-    brandCollab: BrandCollab;
+    brandName: string;
+    contentType: string;
+    contentUrl?: string;
+    reach?: string;
+    engagement?: string;
+    brandLogo?: Express.Multer.File;
 }
 
 export interface BrandCollabResponse {

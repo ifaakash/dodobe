@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { MediaKitModel } from "../../models/mediakit/model";
 import mongoose from "mongoose";
+import { uploadToS3 } from "../../middleware/fileUpload";
 import {
     VerifyRequestBody,
     VerifyResponse,
@@ -253,12 +254,20 @@ export class MediaKitController {
         req: Request<{}, {}, AddBrandCollabRequestBody>,
         res: Response<BrandCollabResponse>
     ) {
-        const { instaId, brandCollab } = req.body;
+        const {
+            instaId,
+            brandName,
+            contentType,
+            contentUrl,
+            reach,
+            engagement,
+        } = req.body;
+        const brandLogo = req.file;
 
-        if (!instaId || !brandCollab) {
+        if (!instaId || !brandName || !contentType) {
             return res.status(400).json({
                 success: false,
-                message: "instaId and brandCollab are required",
+                message: "instaId, brandName, and contentType are required",
             });
         }
 
@@ -271,6 +280,21 @@ export class MediaKitController {
                     message: "MediaKit not found for this instaId",
                 });
             }
+
+            let brandLogoUrl;
+            if (brandLogo) {
+                brandLogoUrl = await uploadToS3(brandLogo, "brand-logos");
+            }
+
+            const brandCollab = {
+                brandName,
+                contentType,
+                contentUrl,
+                reach,
+                engagement,
+                brandLogo: brandLogoUrl,
+                isActive: true,
+            };
 
             mediaKit.brandCollabs = mediaKit.brandCollabs || [];
             mediaKit.brandCollabs.push(brandCollab);
