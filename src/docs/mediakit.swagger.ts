@@ -100,7 +100,7 @@
  *     requestBody:
  *       required: true
  *       content:
- *         application/x-www-form-urlencoded:
+ *         application/json:
  *           schema:
  *             type: object
  *             required:
@@ -237,7 +237,7 @@
  *     requestBody:
  *       required: true
  *       content:
- *         application/x-www-form-urlencoded:
+ *         application/json:
  *           schema:
  *             type: object
  *             required:
@@ -356,7 +356,7 @@
  *     requestBody:
  *       required: true
  *       content:
- *         application/x-www-form-urlencoded:
+ *         application/json:
  *           schema:
  *             type: object
  *             required:
@@ -437,6 +437,78 @@
  *                     isVerified:
  *                       type: boolean
  *                       description: Whether the media kit is verified
+ *       400:
+ *         description: Invalid input
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: Media kit not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+
+/**
+ * @swagger
+ * /api/v1/mediakit/update:
+ *   patch:
+ *     summary: Update a media kit
+ *     tags: [MediaKit]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - instaId
+ *             properties:
+ *               instaId:
+ *                 type: string
+ *                 description: The Instagram ID of the media kit to update
+ *               followers:
+ *                 type: number
+ *                 description: Number of followers
+ *               following:
+ *                 type: number
+ *                 description: Number of following
+ *               mediaCount:
+ *                 type: number
+ *                 description: Number of media posts
+ *               avgLikes:
+ *                 type: number
+ *                 description: Average likes per post
+ *               avgComments:
+ *                 type: number
+ *                 description: Average comments per post
+ *               isVerified:
+ *                 type: boolean
+ *                 description: Whether the media kit is verified
+ *     responses:
+ *       200:
+ *         description: Media kit updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: MediaKit updated successfully
  *       400:
  *         description: Invalid input
  *         content:

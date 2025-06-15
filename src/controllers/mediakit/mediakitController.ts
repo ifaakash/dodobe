@@ -136,10 +136,10 @@ export class MediaKitController {
         const {
             instaId,
             followers,
-            following,
-            mediaCount,
             avgLikes,
             avgComments,
+            mediaCount,
+            following,
             isVerified,
         } = req.body;
 
@@ -159,8 +159,12 @@ export class MediaKitController {
                     message: "MediaKit already exists for this instaId",
                 });
             }
-            const engagementRate = ((avgLikes + avgComments) / followers) * 100;
-
+            const engagementRate =
+                followers > 0
+                    ? ((Number(avgLikes) + Number(avgComments)) /
+                          Number(followers)) *
+                      100
+                    : 0;
             const verified = isVerified || false;
 
             // Create new media kit
