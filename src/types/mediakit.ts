@@ -7,6 +7,7 @@ export interface BrandCollab extends BaseDocument {
     contentUrl?: string;
     reach?: string;
     engagement?: string;
+    isActive: boolean;
 }
 
 export interface ContentAnalytics {
@@ -21,6 +22,7 @@ export interface GenderAnalytics {
     malePercentage: number;
     femalePercentage: number;
     uploadedAt: Date;
+    isActive: boolean;
 }
 
 export interface AgeAnalytics {
@@ -29,11 +31,13 @@ export interface AgeAnalytics {
     "35-44": number;
     "45-54": number;
     uploadedAt: Date;
+    isActive: boolean;
 }
 
 export interface LocationAnalytics {
     locations: Map<string, number>;
     uploadedAt: Date;
+    isActive: boolean;
 }
 
 export interface IMediaKit extends BaseDocument {

@@ -8,6 +8,7 @@ const BrandCollabSchema = new Schema(
         contentUrl: { type: String, required: false },
         reach: { type: String, required: false },
         engagement: { type: String, required: false },
+        isActive: { type: Boolean, default: true },
     },
     { timestamps: true }
 );
@@ -28,6 +29,7 @@ const GenderAnalyticsSchema = new Schema(
         malePercentage: { type: Number, default: 0, min: 0, max: 100 },
         femalePercentage: { type: Number, default: 0, min: 0, max: 100 },
         uploadedAt: { type: Date, default: Date.now },
+        isActive: { type: Boolean, default: true },
     },
     { _id: false }
 );
@@ -39,6 +41,7 @@ const AgeAnalyticsSchema = new Schema(
         "35-44": { type: Number, default: 0, min: 0 },
         "45-54": { type: Number, default: 0, min: 0 },
         uploadedAt: { type: Date, default: Date.now },
+        isActive: { type: Boolean, default: true },
     },
     { _id: false }
 );
@@ -47,6 +50,7 @@ const LocationAnalyticsSchema = new Schema(
     {
         locations: { type: Map, of: { type: Number, min: 0 } },
         uploadedAt: { type: Date, default: Date.now },
+        isActive: { type: Boolean, default: true },
     },
     { _id: false }
 );
