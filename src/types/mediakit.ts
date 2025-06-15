@@ -9,17 +9,45 @@ export interface BrandCollab extends BaseDocument {
     engagement?: string;
 }
 
-export interface IMediaKit extends BaseDocument {
-    _id: ID;
-    userId: ID;
-    instaId: string;
-    isVerified: boolean;
-    followers?: number;
-    following?: number;
+export interface ContentAnalytics {
+    avgLikes: number;
+    avgComments: number;
     mediaCount?: number;
     engagement?: number;
-    avgLikes?: number;
-    avgComments?: number;
+    uploadedAt: Date;
+}
+
+export interface GenderAnalytics {
+    malePercentage: number;
+    femalePercentage: number;
+    uploadedAt: Date;
+}
+
+export interface AgeAnalytics {
+    "15-24": number;
+    "25-34": number;
+    "35-44": number;
+    "45-54": number;
+    uploadedAt: Date;
+}
+
+export interface LocationAnalytics {
+    locations: Map<string, number>;
+    uploadedAt: Date;
+}
+
+export interface IMediaKit extends BaseDocument {
+    _id: ID;
+    instaId: string;
+    followers: number;
+    userId?: ID;
+    isVerified?: boolean;
+    following?: number;
+    grade?: string;
+    contentAnalytics?: ContentAnalytics;
+    genderAnalytics?: GenderAnalytics;
+    ageAnalytics?: AgeAnalytics;
+    locationAnalytics?: LocationAnalytics;
     brandCollabs?: BrandCollab[];
 }
 
@@ -42,7 +70,7 @@ export interface CreateMediaKitRequest {
     avgComments: number;
     mediaCount?: number;
     following?: number;
-    engagement?: number;
+    grade?: string;
     isVerified?: boolean;
 }
 
@@ -93,21 +121,26 @@ export interface BrandCollabResponse {
     error?: string;
 }
 
+export type AllowedMediaKitUpdates = {
+    followers?: number;
+    following?: number;
+    isVerified?: boolean;
+    grade?: string;
+    brandCollabs?: BrandCollab[];
+    contentAnalytics?: ContentAnalytics;
+    genderAnalytics?: GenderAnalytics;
+    ageAnalytics?: AgeAnalytics;
+    locationAnalytics?: LocationAnalytics;
+};
+
 export interface UpdateMediaKitRequest {
     instaId: string;
-    updates: {
-        followers?: number;
-        following?: number;
-        mediaCount?: number;
-        engagement?: number;
-        avgLikes?: number;
-        avgComments?: number;
-        brandCollab?: BrandCollab;
-    };
+    updates: AllowedMediaKitUpdates;
 }
 
 export interface UpdateMediaKitResponse {
     success: boolean;
     message: string;
     error?: string;
+    data?: IMediaKit;
 }

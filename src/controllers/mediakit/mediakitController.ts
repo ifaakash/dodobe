@@ -4,7 +4,6 @@ import mongoose from "mongoose";
 import {
     VerifyRequestBody,
     VerifyResponse,
-    CheckVerifiedRequestQuery,
     CheckVerifiedResponse,
     MediaKitDetailsResponse,
     BrandCollabResponse,
@@ -225,13 +224,14 @@ export class MediaKitController {
                 });
             }
 
-            // Update only the provided fields
+            // Update the provided fields
             Object.assign(mediaKit, updates);
             await mediaKit.save();
 
             return res.status(200).json({
                 success: true,
                 message: "MediaKit updated successfully",
+                data: mediaKit,
             });
         } catch (error) {
             console.error("Error updating MediaKit:", error);

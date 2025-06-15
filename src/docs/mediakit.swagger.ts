@@ -6,7 +6,6 @@
  *       type: object
  *       required:
  *         - instaId
- *         - userId
  *       properties:
  *         _id:
  *           type: string
@@ -26,22 +25,76 @@
  *         following:
  *           type: number
  *           description: Number of following
- *         mediaCount:
- *           type: number
- *           description: Number of media posts
- *         engagement:
- *           type: number
- *           description: Engagement rate
- *         avgLikes:
- *           type: number
- *           description: Average likes per post
- *         avgComments:
- *           type: number
- *           description: Average comments per post
+ *         grade:
+ *           type: string
+ *           description: The grade/rating of the media kit
  *         brandCollabs:
  *           type: array
  *           items:
  *             $ref: '#/components/schemas/BrandCollab'
+ *         contentAnalytics:
+ *           type: object
+ *           properties:
+ *             mediaCount:
+ *               type: number
+ *               description: Number of media posts
+ *             engagement:
+ *               type: number
+ *               description: Engagement rate
+ *             avgLikes:
+ *               type: number
+ *               description: Average likes per post
+ *             avgComments:
+ *               type: number
+ *               description: Average comments per post
+ *             uploadedAt:
+ *               type: string
+ *               format: date-time
+ *               description: When the analytics were last updated
+ *         genderAnalytics:
+ *           type: object
+ *           properties:
+ *             malePercentage:
+ *               type: number
+ *               description: Percentage of male followers
+ *             femalePercentage:
+ *               type: number
+ *               description: Percentage of female followers
+ *             uploadedAt:
+ *               type: string
+ *               format: date-time
+ *               description: When the analytics were last updated
+ *         ageAnalytics:
+ *           type: object
+ *           properties:
+ *             "15-24":
+ *               type: number
+ *               description: Percentage of followers aged 15-24
+ *             "25-34":
+ *               type: number
+ *               description: Percentage of followers aged 25-34
+ *             "35-44":
+ *               type: number
+ *               description: Percentage of followers aged 35-44
+ *             "45-54":
+ *               type: number
+ *               description: Percentage of followers aged 45-54
+ *             uploadedAt:
+ *               type: string
+ *               format: date-time
+ *               description: When the analytics were last updated
+ *         locationAnalytics:
+ *           type: object
+ *           properties:
+ *             locations:
+ *               type: object
+ *               additionalProperties:
+ *                 type: number
+ *               description: Map of locations to follower percentages
+ *             uploadedAt:
+ *               type: string
+ *               format: date-time
+ *               description: When the analytics were last updated
  *
  *     BrandCollab:
  *       type: object
@@ -187,6 +240,9 @@
  *               avgComments:
  *                 type: number
  *                 description: Average comments per post
+ *               grade:
+ *                 type: string
+ *                 description: The grade/rating of the media kit
  *               isVerified:
  *                 type: boolean
  *                 description: Whether the media kit is verified
