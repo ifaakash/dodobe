@@ -15,10 +15,9 @@ const BrandCollabSchema = new Schema(
 
 const ContentAnalyticsSchema = new Schema(
     {
-        mediaCount: { type: Number, default: 0, min: 0 },
-        engagement: { type: Number, default: 0, min: 0 },
-        avgLikes: { type: Number, default: 0, min: 0 },
-        avgComments: { type: Number, default: 0, min: 0 },
+        mediaCount: { type: Number, min: 0 },
+        avgLikes: { type: Number, min: 0 },
+        avgComments: { type: Number, min: 0 },
         uploadedAt: { type: Date, default: Date.now },
     },
     { _id: false }
@@ -26,8 +25,8 @@ const ContentAnalyticsSchema = new Schema(
 
 const GenderAnalyticsSchema = new Schema(
     {
-        malePercentage: { type: Number, default: 0, min: 0, max: 100 },
-        femalePercentage: { type: Number, default: 0, min: 0, max: 100 },
+        malePercentage: { type: Number, min: 0, max: 100 },
+        femalePercentage: { type: Number, min: 0, max: 100 },
         uploadedAt: { type: Date, default: Date.now },
         isActive: { type: Boolean, default: true },
     },
@@ -36,10 +35,10 @@ const GenderAnalyticsSchema = new Schema(
 
 const AgeAnalyticsSchema = new Schema(
     {
-        "15-24": { type: Number, default: 0, min: 0 },
-        "25-34": { type: Number, default: 0, min: 0 },
-        "35-44": { type: Number, default: 0, min: 0 },
-        "45-54": { type: Number, default: 0, min: 0 },
+        "15-24": { type: Number, min: 0 },
+        "25-34": { type: Number, min: 0 },
+        "35-44": { type: Number, min: 0 },
+        "45-54": { type: Number, min: 0 },
         uploadedAt: { type: Date, default: Date.now },
         isActive: { type: Boolean, default: true },
     },
@@ -60,16 +59,16 @@ const MediaKitSchema: Schema = new Schema(
         instaId: { type: String, required: true, unique: true },
         userId: { type: Schema.Types.ObjectId, ref: "User", required: false },
         isVerified: { type: Boolean, default: false },
-        followers: { type: Number, default: 0, min: 0 },
-        following: { type: Number, default: 0, min: 0 },
+        followers: { type: Number, min: 0 },
+        following: { type: Number, min: 0 },
         grade: { type: String, required: false },
         brandCollabs: [BrandCollabSchema],
-        contentAnalytics: { type: ContentAnalyticsSchema, default: () => ({}) },
-        genderAnalytics: { type: GenderAnalyticsSchema, default: () => ({}) },
-        ageAnalytics: { type: AgeAnalyticsSchema, default: () => ({}) },
+        contentAnalytics: { type: ContentAnalyticsSchema },
+        genderAnalytics: { type: GenderAnalyticsSchema },
+        ageAnalytics: { type: AgeAnalyticsSchema },
+        engagement: { type: Number, min: 0 },
         locationAnalytics: {
             type: LocationAnalyticsSchema,
-            default: () => ({}),
         },
     },
     {
@@ -80,10 +79,10 @@ const MediaKitSchema: Schema = new Schema(
 );
 
 // Add validation to ensure gender percentages sum to 100
-MediaKitSchema.path("genderAnalytics").validate(function (value: any) {
-    if (!value) return true;
-    return value.malePercentage + value.femalePercentage === 100;
-}, "Gender percentages must sum to 100");
+// MediaKitSchema.path("genderAnalytics").validate(function (value: any) {
+//     if (!value) return true;
+//     return value.malePercentage + value.femalePercentage === 100;
+// }, "Gender percentages must sum to 100");
 
 export {
     MediaKitSchema,

@@ -24,7 +24,7 @@ router.patch("/update", MediaKitController.updateMediaKit);
 // Route to add brand collaboration
 router.post(
     "/add-brand-collab",
-    authenticateUser,
+    // authenticateUser,
     upload.single("brandLogo"),
     handleFileUploadError,
     MediaKitController.addBrandCollab
