@@ -37,4 +37,14 @@ router.post(
     MediaKitController.linkMediaKit
 );
 
+// Route to upload analytics screenshot
+router.post(
+    "/analytics",
+    // authenticateUser,
+    upload.fields([{ name: "screenshot", maxCount: 1 }]),
+    handleFileUploadError,
+    MediaKitController.uploadAnalytics
+);
+
+
 export { router as mediakitRouter };

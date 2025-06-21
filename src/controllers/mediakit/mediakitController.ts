@@ -8,6 +8,8 @@ import {
     CheckVerifiedResponse,
     MediaKitDetailsResponse,
     BrandCollabResponse,
+    UploadAnalyticsRequest,
+    UploadAnalyticsResponse,
     UpdateMediaKitRequest,
     UpdateMediaKitResponse,
     CreateMediaKitRequest,
@@ -17,7 +19,13 @@ import {
     LinkMediaKitResponse,
 } from "../../types/mediakit";
 import { UserModel } from "../../models/user/model";
-import { AgeAnalyticsSchema, ContentAnalyticsSchema, GenderAnalyticsSchema } from "../../models/mediakit/schema";
+import {
+    AgeAnalyticsSchema,
+    ContentAnalyticsSchema,
+    GenderAnalyticsSchema,
+} from "../../models/mediakit/schema";
+import { GeminiService } from "../../utils/geminiService";
+import { logger } from "../../utils/logger";
 
 export class MediaKitController {
     // POST /verify
@@ -113,7 +121,6 @@ export class MediaKitController {
             const user = await UserModel.findById(mediaKit?.userId);
 
             console.log(user);
-           
             if (!mediaKit) {
                 return res.status(404).json({
                     success: false,
@@ -181,8 +188,14 @@ export class MediaKitController {
                 following,
                 mediaCount,
                 engagement: engagementRate,
-                avgLikes,
-                avgComments,
+                contentAnalytics: {
+                    contentData: {
+                        avgLikes,
+                        avgComments,
+                        mediaCount,
+                    },
+                    uploadedAt: new Date(),
+                },
             });
 
             return res.status(201).json({
@@ -389,7 +402,6 @@ export class MediaKitController {
                         message: "User not found",
                     });
                 }
-              
                 user.mediaKit = mediaKit._id;
                 mediaKit.userId = userObjectId;
                 await user.save();
@@ -407,6 +419,121 @@ export class MediaKitController {
                 success: false,
                 message: "Internal Server Error",
                 error: (error as Error).message,
+            });
+        }
+    }
+
+    // POST /analytics
+    public static async uploadAnalytics(
+        req: Request<{}, {}, UploadAnalyticsRequest>,
+        res: Response<UploadAnalyticsResponse>
+    ) {
+        const { instaId, type } = req.body;
+
+        if (!instaId || !type) {
+            return res.status(400).json({
+                success: false,
+                message: "instaId and type are required",
+            });
+        }
+
+        const file = (
+            req.files as { [fieldname: string]: Express.Multer.File[] }
+        )?.["screenshot"]?.[0];
+
+        if (!file) {
+            return res.status(400).json({
+                success: false,
+                message: "Screenshot file is required",
+            });
+        }
+
+        try {
+            // 0. Check if media kit exists
+            const mediaKit = await MediaKitModel.findOne({ instaId });
+            if (!mediaKit) {
+                return res.status(404).json({
+                    success: false,
+                    message: "MediaKit not found for this instaId",
+                });
+            }
+
+            // 1. Convert file to base64
+            const imageBase64 = file.buffer.toString("base64");
+
+            // 2. Extract data using Gemini
+            const analyticsData = await GeminiService.extractAnalytics(
+                imageBase64,
+                type
+            );
+
+            // 3. Check if Gemini detected invalid screenshot
+            if (analyticsData.error) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Invalid screenshot: The uploaded image does not contain ${type} analytics data. Please upload a valid Instagram ${type} analytics screenshot.`,
+                    error: analyticsData.error,
+                });
+            }
+
+            // 4. Completely replace the analytics data (not merge)
+            switch (type) {
+                case "content":
+                    // Replace entire content analytics object
+                    mediaKit.contentAnalytics = {
+                        contentData: analyticsData,
+                        uploadedAt: new Date(),
+                    };
+                    break;
+                case "gender":
+                    // Replace entire gender analytics object
+                    mediaKit.genderAnalytics = {
+                        genderData: analyticsData,
+                        uploadedAt: new Date(),
+                        isActive: true,
+                    };
+                    break;
+                case "age":
+                    // Replace entire age analytics object (clears old age groups)
+                    mediaKit.ageAnalytics = {
+                        ageData: analyticsData,
+                        uploadedAt: new Date(),
+                        isActive: true,
+                    };
+                    break;
+                case "location":
+                    // Replace entire location analytics object (clears old locations)
+                    mediaKit.locationAnalytics = {
+                        locationData: analyticsData,
+                        uploadedAt: new Date(),
+                        isActive: true,
+                    };
+                    break;
+            }
+
+            // Mark nested paths as modified to ensure proper replacement of Map data
+            if (type === "age") {
+                mediaKit.markModified("ageAnalytics.ageData.ageGroups");
+            } else if (type === "location") {
+                mediaKit.markModified(
+                    "locationAnalytics.locationData.locations"
+                );
+            }
+
+            await mediaKit.save();
+
+            // 6. Return full updated mediakit data
+            return res.status(200).json({
+                success: true,
+                message: "Analytics uploaded successfully",
+                data: mediaKit,
+            });
+        } catch (error) {
+            logger.error("Error processing analytics:", error);
+            return res.status(500).json({
+                success: false,
+                message: "Error processing analytics",
+                error: error instanceof Error ? error.message : "Unknown error",
             });
         }
     }
