@@ -26,6 +26,7 @@ COPY --from=builder ./app/package*.json ./
 COPY --from=builder /app/pnpm-lock.yaml ./
 COPY --from=builder /app/src/docs ./src/docs
 COPY --from=builder /app/src/docs ./dist/docs
+COPY --from=builder /app/.env ./
 
 # Install only production dependencies
 RUN npm install -g pnpm && pnpm install
