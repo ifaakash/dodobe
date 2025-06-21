@@ -154,6 +154,8 @@ The application uses a centralized error handling system:
 - Database errors
 - Authentication errors
 
+
+
 Errors are logged using Winston logger and return appropriate HTTP status codes.
 
 ## Contributing

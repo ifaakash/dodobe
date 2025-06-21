@@ -5,9 +5,61 @@ import { apiRouter } from "./routes";
 import { config } from "./config";
 import { logger, logEndpoint } from "./utils/logger";
 import { connectDB } from "./config/database";
+import swaggerUi from "swagger-ui-express";
+import swaggerJsdoc from "swagger-jsdoc";
 
 // Create Express app
 const app = express();
+
+// Swagger configuration
+const swaggerOptions = {
+    definition: {
+        openapi: "3.0.0",
+        info: {
+            title: "Media Kit API",
+            version: "1.0.0",
+            description: "API documentation for Media Kit management",
+        },
+        servers: [
+            {
+                url: "http://localhost:3002",
+                description: "Local Development",
+            },
+            {
+                url: "https://api.dodoclub.in",
+                description: "Production API",
+            },
+            {
+                url: "https://dodobe.onrender.com",
+                description: "Render Deployment",
+            },
+            {
+                url: "https://{customUrl}",
+                description: "Custom Server (PR Preview)",
+                variables: {
+                    customUrl: {
+                        default: "your-pr-preview-url.com",
+                        description: "Enter your PR preview URL",
+                    },
+                },
+            },
+        ],
+        components: {
+            securitySchemes: {
+                bearerAuth: {
+                    type: "http",
+                    scheme: "bearer",
+                    bearerFormat: "JWT",
+                },
+            },
+        },
+    },
+    apis: ["./src/docs/*.swagger.ts", "./dist/docs/*.swagger.js"],
+};
+
+const swaggerSpec = swaggerJsdoc(swaggerOptions) as {
+    servers: Array<{ url: string; description: string; variables?: any }>;
+};
 
 // Middleware
 app.use(cors());
@@ -29,6 +81,25 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // Add endpoint logging middleware
 app.use(logEndpoint);
+
+// Swagger UI setup
+app.use(
+    "/api-docs",
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerSpec, {
+        swaggerOptions: {
+            url: "/api-docs/swagger.json",
+            persistAuthorization: true,
+            docExpansion: "none",
+            filter: true,
+            showCommonExtensions: true,
+            defaultModelsExpandDepth: -1,
+            defaultModelExpandDepth: 3,
+            displayRequestDuration: true,
+            tryItOutEnabled: true,
+        },
+    })
+);
 
 // Static file serving
 app.use("/uploads", express.static("uploads"));
@@ -68,11 +139,14 @@ app.use(
 );
 
 // Only start the server if we're not in a test environment
-if (process.env.NODE_ENV !== 'test') {
+if (process.env.NODE_ENV !== "test") {
     connectDB()
         .then(() => {
             app.listen(config.port, () => {
                 logger.info(`Server running on port ${config.port}`);
+                logger.info(
+                    `Swagger documentation available at http://localhost:${config.port}/api-docs`
+                );
             });
         })
         .catch((err) => {
@@ -81,7 +155,7 @@ if (process.env.NODE_ENV !== 'test') {
         });
 }
 
-app.get('/api/resource', (req, res) => {
+app.get("/api/resource", (req, res) => {
     // Replace console.log with logger
     logger.info({
         type: "custom",

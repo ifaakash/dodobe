@@ -1,16 +1,29 @@
 import { Request, Response } from "express";
 import { MediaKitModel } from "../../models/mediakit/model";
+import mongoose from "mongoose";
+import { uploadToS3 } from "../../middleware/fileUpload";
 import {
     VerifyRequestBody,
     VerifyResponse,
-    CheckVerifiedRequestQuery,
     CheckVerifiedResponse,
     MediaKitDetailsResponse,
-    BrandCollabRequestBody,
     BrandCollabResponse,
     UploadAnalyticsRequest,
     UploadAnalyticsResponse,
+    UpdateMediaKitRequest,
+    UpdateMediaKitResponse,
+    CreateMediaKitRequest,
+    CreateMediaKitResponse,
+    AddBrandCollabRequestBody,
+    LinkMediaKitRequestBody,
+    LinkMediaKitResponse,
 } from "../../types/mediakit";
+import { UserModel } from "../../models/user/model";
+import {
+    AgeAnalyticsSchema,
+    ContentAnalyticsSchema,
+    GenderAnalyticsSchema,
+} from "../../models/mediakit/schema";
 import { GeminiService } from "../../utils/geminiService";
 import { logger } from "../../utils/logger";
 
@@ -20,19 +33,19 @@ export class MediaKitController {
         req: Request<{}, {}, VerifyRequestBody>,
         res: Response<VerifyResponse>
     ) {
-        const { instaId, linkUrl } = req.body;
+        const { instaId, userId } = req.body;
 
-        if (!instaId || !linkUrl) {
+        if (!instaId || !userId) {
             return res.status(400).json({
                 success: false,
-                message: "Both instaId and link are required",
+                message: "Both instaId and userId are required",
             });
         }
 
         try {
             await MediaKitModel.findOneAndUpdate(
                 { instaId },
-                { linkUrl },
+                { userId },
                 { upsert: true, new: true }
             );
 
@@ -50,12 +63,12 @@ export class MediaKitController {
         }
     }
 
-    // GET /isverified?instaId=some_id
+    // GET /is-verified/some_id
     public static async checkVerified(
-        req: Request<{}, {}, {}, CheckVerifiedRequestQuery>,
+        req: Request<{ instaId: string }>,
         res: Response<CheckVerifiedResponse>
     ) {
-        const { instaId } = req.query;
+        const { instaId } = req.params;
 
         if (!instaId || typeof instaId !== "string") {
             return res.status(400).json({
@@ -88,14 +101,14 @@ export class MediaKitController {
         }
     }
 
-    // GET /details?instaId=some_id
-    public static async details(
-        req: Request<{}, {}, {}, CheckVerifiedRequestQuery>,
+    // GET /get-by-instaId/some_id
+    public static async getDetailsByInstaId(
+        req: Request<{ instaId: string }>,
         res: Response<MediaKitDetailsResponse>
     ) {
-        const { instaId } = req.query;
+        const { instaId } = req.params;
 
-        if (!instaId || typeof instaId !== "string") {
+        if (!instaId) {
             return res.status(400).json({
                 success: false,
                 message: "instaId is required and must be a string",
@@ -105,28 +118,19 @@ export class MediaKitController {
         try {
             const mediaKit = await MediaKitModel.findOne({ instaId });
 
+            const user = await UserModel.findById(mediaKit?.userId);
+
+            console.log(user);
+
             if (!mediaKit) {
                 return res.status(404).json({
                     success: false,
                     message: "MediaKit not found for this instaId",
                 });
             }
-
-            console.log(mediaKit);
             return res.status(200).json({
                 success: true,
-                data: {
-                    instaId: mediaKit.instaId,
-                    linkUrl: mediaKit.linkUrl,
-                    isVerified: mediaKit.isVerified,
-                    followers: mediaKit.followers,
-                    following: mediaKit.following,
-                    mediaCount: mediaKit.mediaCount,
-                    engagement: mediaKit.engagement,
-                    avgLikes: mediaKit.avgLikes,
-                    avgComments: mediaKit.avgComments,
-                    brandCollabs: mediaKit.brandCollabs,
-                },
+                data: mediaKit,
             });
         } catch (error) {
             console.error("Error fetching details:", error);
@@ -138,25 +142,90 @@ export class MediaKitController {
         }
     }
 
-    // POST /brand-collab
-    public static async addBrandCollab(
-        req: Request<{}, {}, BrandCollabRequestBody>,
-        res: Response<BrandCollabResponse>
+    // POST /create
+    public static async createMediaKit(
+        req: Request<{}, {}, CreateMediaKitRequest>,
+        res: Response<CreateMediaKitResponse>
     ) {
-        const { instaId, brandName, brandLogo, type, reach, engagement } =
-            req.body;
+        const {
+            instaId,
+            followers,
+            avgLikes,
+            avgComments,
+            mediaCount,
+            following,
+            isVerified,
+        } = req.body;
 
-        if (
-            !instaId ||
-            !brandName ||
-            !brandLogo ||
-            !type ||
-            !reach ||
-            !engagement
-        ) {
+        if (!instaId || !followers || !avgLikes || !avgComments) {
             return res.status(400).json({
                 success: false,
-                message: "All fields are required",
+                message: "instaId is required",
+            });
+        }
+
+        try {
+            // Check if a media kit already exists for this instaId
+            const existingMediaKit = await MediaKitModel.findOne({ instaId });
+            if (existingMediaKit) {
+                return res.status(409).json({
+                    success: false,
+                    message: "MediaKit already exists for this instaId",
+                });
+            }
+            const engagementRate =
+                followers > 0
+                    ? ((Number(avgLikes) + Number(avgComments)) /
+                          Number(followers)) *
+                      100
+                    : 0;
+            const verified = isVerified || false;
+
+            // Create new media kit
+            const mediaKit = await MediaKitModel.create({
+                instaId,
+                isVerified: verified,
+                followers,
+                following,
+                mediaCount,
+                engagement: engagementRate,
+                avgLikes,
+                avgComments,
+            });
+
+            return res.status(201).json({
+                success: true,
+                message: "MediaKit created successfully",
+                data: mediaKit,
+            });
+        } catch (error) {
+            console.error("Error creating MediaKit:", error);
+            return res.status(500).json({
+                success: false,
+                message: "Internal Server Error",
+                error: (error as Error).message,
+            });
+        }
+    }
+
+    // Patch /update
+    public static async updateMediaKit(
+        req: Request<{}, {}, UpdateMediaKitRequest>,
+        res: Response<UpdateMediaKitResponse>
+    ) {
+        const { instaId, updates } = req.body;
+
+        if (!instaId) {
+            return res.status(400).json({
+                success: false,
+                message: "instaId is required",
+            });
+        }
+
+        if (!updates || Object.keys(updates).length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "No updates provided",
             });
         }
 
@@ -170,15 +239,80 @@ export class MediaKitController {
                 });
             }
 
-            mediaKit.brandCollabs = mediaKit.brandCollabs || [];
-            mediaKit.brandCollabs.push({
+            // Update the provided fields
+            Object.assign(mediaKit, updates);
+            await mediaKit.save();
+
+            return res.status(200).json({
+                success: true,
+                message: "MediaKit updated successfully",
+                data: mediaKit,
+            });
+        } catch (error) {
+            console.error("Error updating MediaKit:", error);
+            return res.status(500).json({
+                success: false,
+                message: "Internal Server Error",
+                error: (error as Error).message,
+            });
+        }
+    }
+
+    /*
+    @desc Add a brand collaboration to the media kit
+    @route POST /add-brand-collab
+    @access Authenticated
+    @dev only one brand collab is allowed per request, but multiple brand collabs can be added to the media kit
+    */
+    public static async addBrandCollab(
+        req: Request<{}, {}, AddBrandCollabRequestBody>,
+        res: Response<BrandCollabResponse>
+    ) {
+        const {
+            instaId,
+            brandName,
+            contentType,
+            contentUrl,
+            reach,
+            engagement,
+        } = req.body;
+        const brandLogo = req.file;
+
+        if (!instaId || !brandName || !contentType) {
+            return res.status(400).json({
+                success: false,
+                message: "instaId, brandName, and contentType are required",
+            });
+        }
+
+        try {
+            const mediaKit = await MediaKitModel.findOne({ instaId });
+
+            if (!mediaKit) {
+                return res.status(404).json({
+                    success: false,
+                    message: "MediaKit not found for this instaId",
+                });
+            }
+
+            let brandLogoUrl;
+            if (brandLogo) {
+                brandLogoUrl = await uploadToS3(brandLogo, "brand-logos");
+            }
+
+            const brandCollab = {
                 brandName,
-                brandLogo,
-                type,
+                contentType,
+                contentUrl,
                 reach,
                 engagement,
-            });
+                brandLogo: brandLogoUrl,
+                isActive: true,
+            };
 
+            mediaKit.brandCollabs = mediaKit.brandCollabs || [];
+            mediaKit.brandCollabs.push(brandCollab);
+            await mediaKit.save();
             await mediaKit.save();
 
             return res.status(200).json({
@@ -187,6 +321,97 @@ export class MediaKitController {
             });
         } catch (error) {
             console.error("Error adding brand collaboration:", error);
+            return res.status(500).json({
+                success: false,
+                message: "Internal Server Error",
+                error: (error as Error).message,
+            });
+        }
+    }
+
+    /*
+    @desc Link media kit to a user
+    @route POST /link-mediakit-to-user
+    @access Authenticated
+    @dev only one media kit can be linked to a user, if a user already has a media kit, it won't be updated
+    */
+    public static async linkMediaKit(
+        req: Request<{}, {}, LinkMediaKitRequestBody>,
+        res: Response<LinkMediaKitResponse>
+    ) {
+        const { userId, instaId } = req.body;
+
+        if (!userId || !instaId) {
+            return res.status(400).json({
+                success: false,
+                message: "Both userId and instaId are required",
+            });
+        }
+
+        try {
+            // Convert string userId to ObjectId
+            const userObjectId = new mongoose.Types.ObjectId(userId);
+
+            // Check if user already has a media kit
+            const existingUserMediaKit = await MediaKitModel.findOne({
+                userId: userObjectId,
+            });
+            if (existingUserMediaKit) {
+                return res.status(409).json({
+                    success: false,
+                    message: "User already has a linked media kit",
+                    data: existingUserMediaKit,
+                });
+            }
+
+            // Check if media kit exists
+            let mediaKit = await MediaKitModel.findOne({ instaId });
+
+            if (!mediaKit) {
+                // Create new media kit with default values and link it to the user
+                const newMediaKit = await MediaKitModel.create({
+                    instaId,
+                    userId: userObjectId,
+                    isVerified: false,
+                    followers: 0,
+                    following: 0,
+                    mediaCount: 0,
+                    engagement: 0,
+                    avgLikes: 0,
+                    avgComments: 0,
+                    brandCollabs: [],
+                });
+                mediaKit = newMediaKit;
+            } else if (mediaKit.userId) {
+                // If media kit exists and is already linked to another user
+                return res.status(409).json({
+                    success: false,
+                    message: "MediaKit is already linked to another user",
+                    data: mediaKit,
+                });
+            } else {
+                // If media kit exists but is not linked to any user
+                const user = await UserModel.findById(userObjectId);
+                if (!user) {
+                    return res.status(404).json({
+                        success: false,
+                        message: "User not found",
+                    });
+                }
+
+                user.mediaKit = mediaKit._id;
+                mediaKit.userId = userObjectId;
+                await user.save();
+                await mediaKit.save();
+            }
+
+            return res.status(200).json({
+                success: true,
+                message: "MediaKit linked to user successfully",
+                data: mediaKit,
+            });
+        } catch (error) {
+            console.error("Error linking media kit:", error);
             return res.status(500).json({
                 success: false,
                 message: "Internal Server Error",
