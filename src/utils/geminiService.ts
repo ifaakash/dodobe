@@ -13,29 +13,48 @@ if (!AI_API_KEY) {
 
 export class GeminiService {
     private static readonly PROMPTS = {
-        content: `Analyze this Instagram analytics screenshot for content metrics. Extract and return ONLY these fields in JSON format:
+        content: `Analyze this Instagram analytics screenshot for content metrics. 
+      
+      IMPORTANT: If this screenshot does not show Instagram content analytics/insights (posts, likes, comments, media count), return exactly:
+      { "error": "Invalid screenshot for content analytics" }
+      
+      Otherwise, extract and return ONLY these fields in JSON format:
       {
         "mediaCount": number,
         "engagement": number,
         "avgLikes": number,
         "avgComments": number
       }`,
-        gender: `Analyze this Instagram demographics screenshot for gender distribution. Extract and return ONLY these fields in JSON format:
+        gender: `Analyze this Instagram demographics screenshot for gender distribution.
+      
+      IMPORTANT: If this screenshot does not show Instagram gender demographics/audience insights, return exactly:
+      { "error": "Invalid screenshot for gender analytics" }
+      
+      Otherwise, extract and return ONLY these fields in JSON format:
       {
         "malePercentage": number,
         "femalePercentage": number
       }`,
-        age: `Analyze this Instagram demographics screenshot for age distribution. Extract and return ONLY these fields in JSON format:
+        age: `Analyze this Instagram demographics screenshot for age distribution.
+      
+      IMPORTANT: If this screenshot does not show Instagram age demographics/audience insights, return exactly:
+      { "error": "Invalid screenshot for age analytics" }
+      
+      Otherwise, extract and return ONLY in this JSON format:
       {
-        "15-24": number,
-        "25-34": number,
-        "35-44": number,
-        "45-54": number
-      }`,
-        location: `Analyze this Instagram demographics screenshot for location distribution. Extract and return in JSON format:
+        "ageGroups": { "25-34": 63.2, "18-24": 21.7, "35-44": 12.5, "13-17": 2.6 }
+      }
+      Use the exact age ranges shown in the screenshot. Return percentages as numbers without % symbol.`,
+        location: `Analyze this Instagram demographics screenshot for location distribution.
+      
+      IMPORTANT: If this screenshot does not show Instagram location/country demographics/audience insights, return exactly:
+      { "error": "Invalid screenshot for location analytics" }
+      
+      Otherwise, extract and return ONLY in this JSON format:
       {
-        "locations": { "location1": percentage, "location2": percentage, ... }
-      }`,
+        "locations": { "United States": 45.2, "India": 23.8, "United Kingdom": 15.6, "Canada": 8.4 }
+      }
+      Use the exact location names shown in the screenshot. Return percentages as numbers without % symbol.`,
     };
 
     static async extractAnalytics(imageBase64: string, type: AnalyticsType) {
@@ -86,12 +105,26 @@ export class GeminiService {
                 );
             }
 
-            // Parse the JSON response
+            // Parse the JSON response - handle markdown code blocks
             try {
-                const parsedData = JSON.parse(generatedContent);
+                // Extract JSON from markdown code blocks if present
+                let jsonString = generatedContent.trim();
+
+                // Check if response is wrapped in markdown code blocks
+                const codeBlockMatch = jsonString.match(
+                    /```(?:json)?\s*([\s\S]*?)\s*```/
+                );
+                if (codeBlockMatch) {
+                    jsonString = codeBlockMatch[1].trim();
+                }
+
+                logger.info(`Extracted JSON string for ${type}:`, jsonString);
+
+                const parsedData = JSON.parse(jsonString);
                 return parsedData;
             } catch (parseError) {
                 logger.error("Error parsing Gemini API response:", parseError);
+                logger.error("Raw content:", generatedContent);
                 throw new Error("Invalid JSON response from Gemini API");
             }
         } catch (error) {

@@ -13,31 +13,36 @@ export interface BrandCollab {
 }
 
 export interface ContentAnalytics {
-    avgLikes: number;
-    avgComments: number;
-    mediaCount?: number;
-    engagement?: number;
+    contentData: {
+        avgLikes: number;
+        avgComments: number;
+        mediaCount?: number;
+        engagement?: number;
+    };
     uploadedAt: Date;
 }
 
 export interface GenderAnalytics {
-    malePercentage: number;
-    femalePercentage: number;
+    genderData: {
+        malePercentage: number;
+        femalePercentage: number;
+    };
     uploadedAt: Date;
     isActive: boolean;
 }
 
 export interface AgeAnalytics {
-    "15-24": number;
-    "25-34": number;
-    "35-44": number;
-    "45-54": number;
+    ageData: {
+        ageGroups: Map<string, number>;
+    };
     uploadedAt: Date;
     isActive: boolean;
 }
 
 export interface LocationAnalytics {
-    locations: Map<string, number>;
+    locationData: {
+        locations: Map<string, number>;
+    };
     uploadedAt: Date;
     isActive: boolean;
 }

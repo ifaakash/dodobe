@@ -189,8 +189,14 @@ export class MediaKitController {
                 following,
                 mediaCount,
                 engagement: engagementRate,
-                avgLikes,
-                avgComments,
+                contentAnalytics: {
+                    contentData: {
+                        avgLikes,
+                        avgComments,
+                        mediaCount,
+                    },
+                    uploadedAt: new Date(),
+                },
             });
 
             return res.status(201).json({
@@ -426,6 +432,14 @@ export class MediaKitController {
         res: Response<UploadAnalyticsResponse>
     ) {
         const { instaId, type } = req.body;
+
+        if (!instaId || !type) {
+            return res.status(400).json({
+                success: false,
+                message: "instaId and type are required",
+            });
+        }
+
         const file = (
             req.files as { [fieldname: string]: Express.Multer.File[] }
         )?.["screenshot"]?.[0];
@@ -438,6 +452,15 @@ export class MediaKitController {
         }
 
         try {
+            // 0. Check if media kit exists
+            const mediaKit = await MediaKitModel.findOne({ instaId });
+            if (!mediaKit) {
+                return res.status(404).json({
+                    success: false,
+                    message: "MediaKit not found for this instaId",
+                });
+            }
+
             // 1. Convert file to base64
             const imageBase64 = file.buffer.toString("base64");
 
@@ -447,49 +470,66 @@ export class MediaKitController {
                 type
             );
 
-            // 3. Update MediaKit document
-            const mediaKit = await MediaKitModel.findOne({ instaId });
-            if (!mediaKit) {
-                return res.status(404).json({
+            // 3. Check if Gemini detected invalid screenshot
+            if (analyticsData.error) {
+                return res.status(400).json({
                     success: false,
-                    message: "MediaKit not found",
+                    message: `Invalid screenshot: The uploaded image does not contain ${type} analytics data. Please upload a valid Instagram ${type} analytics screenshot.`,
+                    error: analyticsData.error,
                 });
             }
 
-            // 4. Update the specific analytics type with upload date
-            const updateData = {
-                ...analyticsData,
-                uploadedAt: new Date(),
-            };
-
+            // 4. Completely replace the analytics data (not merge)
             switch (type) {
                 case "content":
-                    mediaKit.contentAnalytics = updateData;
+                    // Replace entire content analytics object
+                    mediaKit.contentAnalytics = {
+                        contentData: analyticsData,
+                        uploadedAt: new Date(),
+                    };
                     break;
                 case "gender":
-                    mediaKit.genderAnalytics = updateData;
+                    // Replace entire gender analytics object
+                    mediaKit.genderAnalytics = {
+                        genderData: analyticsData,
+                        uploadedAt: new Date(),
+                        isActive: true,
+                    };
                     break;
                 case "age":
-                    mediaKit.ageAnalytics = updateData;
+                    // Replace entire age analytics object (clears old age groups)
+                    mediaKit.ageAnalytics = {
+                        ageData: analyticsData,
+                        uploadedAt: new Date(),
+                        isActive: true,
+                    };
                     break;
                 case "location":
-                    mediaKit.locationAnalytics = updateData;
+                    // Replace entire location analytics object (clears old locations)
+                    mediaKit.locationAnalytics = {
+                        locationData: analyticsData,
+                        uploadedAt: new Date(),
+                        isActive: true,
+                    };
                     break;
+            }
+
+            // Mark nested paths as modified to ensure proper replacement of Map data
+            if (type === "age") {
+                mediaKit.markModified("ageAnalytics.ageData.ageGroups");
+            } else if (type === "location") {
+                mediaKit.markModified(
+                    "locationAnalytics.locationData.locations"
+                );
             }
 
             await mediaKit.save();
 
-            // 5. Return full updated mediakit data
+            // 6. Return full updated mediakit data
             return res.status(200).json({
                 success: true,
-                data: {
-                    instaId: mediaKit.instaId,
-                    // ... include all mediakit fields
-                    contentAnalytics: mediaKit.contentAnalytics,
-                    genderAnalytics: mediaKit.genderAnalytics,
-                    ageAnalytics: mediaKit.ageAnalytics,
-                    locationAnalytics: mediaKit.locationAnalytics,
-                },
+                message: "Analytics uploaded successfully",
+                data: mediaKit,
             });
         } catch (error) {
             logger.error("Error processing analytics:", error);

@@ -31,17 +31,14 @@ const GenderAnalyticsSchema = new Schema(
 
 const AgeAnalyticsSchema = new Schema(
     {
-        "15-24": { type: Number, min: 0 },
-        "25-34": { type: Number, min: 0 },
-        "35-44": { type: Number, min: 0 },
-        "45-54": { type: Number, min: 0 },
+        ageGroups: { type: Map, of: { type: Number, min: 0, max: 100 } },
     },
     { _id: false }
 );
 
 const LocationAnalyticsSchema = new Schema(
     {
-        locations: { type: Map, of: { type: Number, min: 0 } },
+        locations: { type: Map, of: { type: Number, min: 0, max: 100 } },
     },
     { _id: false }
 );
@@ -55,32 +52,32 @@ const MediaKitSchema: Schema = new Schema(
         following: { type: Number, min: 0 },
         grade: { type: String, required: false },
         brandCollabs: {
-            isActive: { type: Boolean, default: true },
-            brands: { type: [BrandCollabSchema], default: [] }
+            isActive: { type: Boolean, default: false },
+            brands: { type: [BrandCollabSchema], default: [] },
         },
         contentAnalytics: {
             contentData: { type: ContentAnalyticsSchema },
             uploadedAt: { type: Date },
         },
         genderAnalytics: {
-            isActive: { type: Boolean, default: true },
-            genderData: { type: GenderAnalyticsSchema, },
+            isActive: { type: Boolean, default: false },
+            genderData: { type: GenderAnalyticsSchema },
             uploadedAt: { type: Date },
         },
         ageAnalytics: {
-            isActive: { type: Boolean, default: true },
+            isActive: { type: Boolean, default: false },
             ageData: { type: AgeAnalyticsSchema },
             uploadedAt: { type: Date },
         },
         engagement: { type: Number, min: 0 },
         locationAnalytics: {
-            isActive: { type: Boolean, default: true },
+            isActive: { type: Boolean, default: false },
             locationData: { type: LocationAnalyticsSchema },
             uploadedAt: { type: Date },
         },
         rateCard: {
             isActive: { type: Boolean, default: true },
-        }
+        },
     },
     {
         timestamps: true,
@@ -89,11 +86,6 @@ const MediaKitSchema: Schema = new Schema(
     }
 );
 
-// Add validation to ensure gender percentages sum to 100
-// MediaKitSchema.path("genderAnalytics").validate(function (value: any) {
-//     if (!value) return true;
-//     return value.malePercentage + value.femalePercentage === 100;
-// }, "Gender percentages must sum to 100");
 
 export {
     MediaKitSchema,
