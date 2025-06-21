@@ -16,6 +16,8 @@ import {
     LinkMediaKitRequestBody,
     LinkMediaKitResponse,
 } from "../../types/mediakit";
+import { UserModel } from "../../models/user/model";
+import { AgeAnalyticsSchema, ContentAnalyticsSchema, GenderAnalyticsSchema } from "../../models/mediakit/schema";
 
 export class MediaKitController {
     // POST /verify
@@ -108,6 +110,10 @@ export class MediaKitController {
         try {
             const mediaKit = await MediaKitModel.findOne({ instaId });
 
+            const user = await UserModel.findById(mediaKit?.userId);
+
+            console.log(user);
+           
             if (!mediaKit) {
                 return res.status(404).json({
                     success: false,
@@ -376,7 +382,17 @@ export class MediaKitController {
                 });
             } else {
                 // If media kit exists but is not linked to any user
+                const user = await UserModel.findById(userObjectId);
+                if (!user) {
+                    return res.status(404).json({
+                        success: false,
+                        message: "User not found",
+                    });
+                }
+              
+                user.mediaKit = mediaKit._id;
                 mediaKit.userId = userObjectId;
+                await user.save();
                 await mediaKit.save();
             }
 

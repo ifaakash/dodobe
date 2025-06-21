@@ -2,13 +2,15 @@ import { Schema } from "mongoose";
 
 const BrandCollabSchema = new Schema(
     {
-        brandName: { type: String, required: true },
-        brandLogo: { type: String, required: false },
-        contentType: { type: String, required: true },
-        contentUrl: { type: String, required: false },
-        reach: { type: String, required: false },
-        engagement: { type: String, required: false },
         isActive: { type: Boolean, default: true },
+        brandData: {
+            brandName: { type: String, required: true },
+            brandLogo: { type: String, required: false },
+            contentType: { type: String, required: true },
+            contentUrl: { type: String, required: false },
+            reach: { type: String, required: false },
+            engagement: { type: String, required: false },
+        }
     },
     { timestamps: true }
 );
@@ -25,9 +27,11 @@ const ContentAnalyticsSchema = new Schema(
 
 const GenderAnalyticsSchema = new Schema(
     {
-        malePercentage: { type: Number, min: 0, max: 100 },
-        femalePercentage: { type: Number, min: 0, max: 100 },
-        uploadedAt: { type: Date, default: Date.now },
+        genderData: {
+            malePercentage: { type: Number, min: 0, max: 100 },
+            femalePercentage: { type: Number, min: 0, max: 100 },
+        },
+        uploadedAt: { type: Date },
         isActive: { type: Boolean, default: true },
     },
     { _id: false }
@@ -35,11 +39,13 @@ const GenderAnalyticsSchema = new Schema(
 
 const AgeAnalyticsSchema = new Schema(
     {
-        "15-24": { type: Number, min: 0 },
-        "25-34": { type: Number, min: 0 },
-        "35-44": { type: Number, min: 0 },
-        "45-54": { type: Number, min: 0 },
-        uploadedAt: { type: Date, default: Date.now },
+        ageData: {
+            "15-24": { type: Number, min: 0 },
+            "25-34": { type: Number, min: 0 },
+            "35-44": { type: Number, min: 0 },
+            "45-54": { type: Number, min: 0 },
+        },
+        uploadedAt: { type: Date },
         isActive: { type: Boolean, default: true },
     },
     { _id: false }
@@ -47,8 +53,10 @@ const AgeAnalyticsSchema = new Schema(
 
 const LocationAnalyticsSchema = new Schema(
     {
-        locations: { type: Map, of: { type: Number, min: 0 } },
-        uploadedAt: { type: Date, default: Date.now },
+        locationData: {
+            locations: { type: Map, of: { type: Number, min: 0 } },
+        },
+        uploadedAt: { type: Date },
         isActive: { type: Boolean, default: true },
     },
     { _id: false }
@@ -62,14 +70,27 @@ const MediaKitSchema: Schema = new Schema(
         followers: { type: Number, min: 0 },
         following: { type: Number, min: 0 },
         grade: { type: String, required: false },
-        brandCollabs: [BrandCollabSchema],
+        brandCollabs: {
+            isActive: { type: Boolean, default: true },
+            brands: { type: [BrandCollabSchema], default: [] }
+        },
         contentAnalytics: { type: ContentAnalyticsSchema },
-        genderAnalytics: { type: GenderAnalyticsSchema },
-        ageAnalytics: { type: AgeAnalyticsSchema },
+        genderAnalytics: {
+            isActive: { type: Boolean, default: true },
+            genderData: { type: GenderAnalyticsSchema, }
+        },
+        ageAnalytics: {
+            isActive: { type: Boolean, default: true },
+            ageData: { type: AgeAnalyticsSchema }
+        },
         engagement: { type: Number, min: 0 },
         locationAnalytics: {
-            type: LocationAnalyticsSchema,
+            isActive: { type: Boolean, default: true },
+            locationData: { type: LocationAnalyticsSchema }
         },
+        rateCard: {
+            isActive: { type: Boolean, default: true },
+        }
     },
     {
         timestamps: true,

@@ -2,6 +2,7 @@ import { ID } from "./common";
 import { SocialLinks } from "./user";
 import { TransactionType } from "./dodoCoin";
 import { IInvoice, IClientDetail, IRecipientDetail, IBankDetail } from "./invoice";
+import { IMediaKit } from "./mediakit";
 export interface RegisterRequest {
     mobileNumber: string;
     firebaseUid: string;
@@ -57,10 +58,11 @@ export interface GetUserDetailsResponse {
         coinTransactions: {
             id: ID;
             amount: number;
-            transactionType: TransactionType;
+            transactionType: TransactionType;   
             description: string;
             createdAt: Date;
         }[];
+        mediaKit: IMediaKit;
     };
 }
 export interface UpdateUserDetailsResponseError {
