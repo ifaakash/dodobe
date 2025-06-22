@@ -175,8 +175,8 @@ export class MediaKitController {
             const engagementRate =
                 followers > 0
                     ? ((Number(avgLikes) + Number(avgComments)) /
-                          Number(followers)) *
-                      100
+                        Number(followers)) *
+                    100
                     : 0;
             const verified = isVerified || false;
 
@@ -315,8 +315,15 @@ export class MediaKitController {
                 isActive: true,
             };
 
-            mediaKit.brandCollabs = mediaKit.brandCollabs || [];
-            mediaKit.brandCollabs.push(brandCollab);
+            mediaKit.brandCollabs = mediaKit.brandCollabs || {
+                isActive: true,
+                brands: [],
+            };
+
+            if (mediaKit.brandCollabs.brands.length < 1) {
+                mediaKit.brandCollabs.isActive = true;
+            }
+            mediaKit.brandCollabs.brands.push(brandCollab);
             await mediaKit.save();
 
             return res.status(200).json({
