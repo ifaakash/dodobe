@@ -7,7 +7,6 @@ export interface BrandCollab {
     reach?: string;
     engagement?: string;
     brandLogo?: string;
-    isActive: boolean;
     createdAt?: Date;
     updatedAt?: Date;
 }
@@ -59,7 +58,10 @@ export interface IMediaKit extends BaseDocument {
     genderAnalytics?: GenderAnalytics;
     ageAnalytics?: AgeAnalytics;
     locationAnalytics?: LocationAnalytics;
-    brandCollabs?: BrandCollab[];
+    brandCollabs?: {
+        isActive: boolean;
+        brands: BrandCollab[];
+    };
 }
 
 export interface LinkMediaKitRequestBody {
@@ -142,7 +144,10 @@ export type AllowedMediaKitUpdates = {
     following?: number;
     isVerified?: boolean;
     grade?: string;
-    brandCollabs?: BrandCollab[];
+    brandCollabs?: {
+        isActive: boolean;
+        brands: BrandCollab[];
+    };
     contentAnalytics?: ContentAnalytics;
     genderAnalytics?: GenderAnalytics;
     ageAnalytics?: AgeAnalytics;
