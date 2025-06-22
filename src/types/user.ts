@@ -19,12 +19,16 @@ export interface IUser extends BaseDocument {
     firebaseUid?: string;
     dodoPages: ID[];
     interestCategories: ID[];
+    whatsappNumber?: string;
+    alternatePhoneNumber?: string;
+    email?: string;
     bankDetails: ID[];
     invoices: ID[];
     clientDetails: ID[];
     recipientDetails: ID[];
     dodoCoins: number;
     coinTransactions: ID[]; // Reference to coin transactions
+    mediaKit: ID; // Reference to media kit
 }
 
 export interface IUserInterestCategory extends BaseDocument {

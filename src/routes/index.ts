@@ -9,7 +9,7 @@ import { recipientRouter } from "./invoiceRoutes/recipient";
 import { dodoCoinRouter } from "./dodoCoin";
 import { authenticateUser } from "../middleware/auth";
 import { analyticsRouter } from "./analytics";
-import { mediakitRouter } from "./mediakitRouter"
+import { mediakitRouter } from "./mediakit";
 import contentRouter from "./contentRoutes";
 
 const router: Router = Router();

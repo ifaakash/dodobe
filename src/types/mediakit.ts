@@ -1,60 +1,177 @@
+import { BaseDocument, ID } from "./common";
+
+export interface BrandCollab {
+    brandName: string;
+    contentType: string;
+    contentUrl?: string;
+    reach?: string;
+    engagement?: string;
+    brandLogo?: string;
+    isActive: boolean;
+    createdAt?: Date;
+    updatedAt?: Date;
+}
+
+export interface ContentAnalytics {
+    contentData: {
+        avgLikes: number;
+        avgComments: number;
+        mediaCount?: number;
+        engagement?: number;
+    };
+    uploadedAt: Date;
+}
+
+export interface GenderAnalytics {
+    genderData: {
+        malePercentage: number;
+        femalePercentage: number;
+    };
+    uploadedAt: Date;
+    isActive: boolean;
+}
+
+export interface AgeAnalytics {
+    ageData: {
+        ageGroups: Map<string, number>;
+    };
+    uploadedAt: Date;
+    isActive: boolean;
+}
+
+export interface LocationAnalytics {
+    locationData: {
+        locations: Map<string, number>;
+    };
+    uploadedAt: Date;
+    isActive: boolean;
+}
+
+export interface IMediaKit extends BaseDocument {
+    _id: ID;
+    instaId: string;
+    followers: number;
+    userId?: ID;
+    isVerified?: boolean;
+    following?: number;
+    grade?: string;
+    contentAnalytics?: ContentAnalytics;
+    genderAnalytics?: GenderAnalytics;
+    ageAnalytics?: AgeAnalytics;
+    locationAnalytics?: LocationAnalytics;
+    brandCollabs?: BrandCollab[];
+}
+
+export interface LinkMediaKitRequestBody {
+    userId: string;
+    instaId: string;
+}
+
+export interface LinkMediaKitResponse {
+    success: boolean;
+    message: string;
+    data?: IMediaKit;
+    error?: string;
+}
+
+export interface CreateMediaKitRequest {
+    instaId: string;
+    followers: number;
+    avgLikes: number;
+    avgComments: number;
+    mediaCount?: number;
+    following?: number;
+    grade?: string;
+    isVerified?: boolean;
+}
+
+export interface CreateMediaKitResponse {
+    success: boolean;
+    message: string;
+    data?: IMediaKit;
+    error?: string;
+}
+
 export interface VerifyRequestBody {
-  instaId: string;
-  linkUrl: string;
+    instaId: string;
+    userId: string;
 }
 
 export interface VerifyResponse {
-  success: boolean;
-  message: string;
-  error?: string;
+    success: boolean;
+    message: string;
+    error?: string;
 }
 
 export interface CheckVerifiedRequestQuery {
-  instaId: string;
+    instaId: string;
 }
 
 export interface CheckVerifiedResponse {
-  success: boolean;
-  isVerified?: boolean;
-  message?: string;
-  error?: string;
+    success: boolean;
+    isVerified?: boolean;
+    message?: string;
+    error?: string;
 }
 
 export interface MediaKitDetailsResponse {
-  success: boolean;
-  data?: {
-    instaId: string;
-    linkUrl: string;
-    isVerified: boolean;
-    followers?: number;
-    following?: number;
-    mediaCount?: number;
-    engagement?: number;
-    avgLikes?: number;
-    avgComments?: number;
-    brandCollabs?: {
-      brandName: string;
-      brandLogo: string;
-      type: string;
-      reach: string;
-      engagement: string;
-    }[];
-  };
-  message?: string;
-  error?: string;
+    success: boolean;
+    message?: string;
+    error?: string;
+    data?: IMediaKit;
 }
 
-export interface BrandCollabRequestBody {
-  instaId: string;
-  brandName: string;
-  brandLogo: string;
-  type: string;
-  reach: string;
-  engagement: string;
+export interface AddBrandCollabRequestBody {
+    instaId: string;
+    brandName: string;
+    contentType: string;
+    contentUrl?: string;
+    reach?: string;
+    engagement?: string;
+    brandLogo?: Express.Multer.File;
 }
 
 export interface BrandCollabResponse {
-  success: boolean;
-  message: string;
-  error?: string;
+    success: boolean;
+    message: string;
+    error?: string;
+}
+
+export type AllowedMediaKitUpdates = {
+    followers?: number;
+    following?: number;
+    isVerified?: boolean;
+    grade?: string;
+    brandCollabs?: BrandCollab[];
+    contentAnalytics?: ContentAnalytics;
+    genderAnalytics?: GenderAnalytics;
+    ageAnalytics?: AgeAnalytics;
+    locationAnalytics?: LocationAnalytics;
+};
+
+export interface UpdateMediaKitRequest {
+    instaId: string;
+    updates: AllowedMediaKitUpdates;
+}
+
+export interface UpdateMediaKitResponse {
+    success: boolean;
+    message: string;
+    error?: string;
+    data?: IMediaKit;
+}
+
+export type AnalyticsType = "content" | "gender" | "age" | "location";
+
+export interface UploadAnalyticsRequest {
+    instaId: string;
+    type: AnalyticsType;
+    // File will be handled by multer
+}
+
+export interface UploadAnalyticsResponse {
+    success: boolean;
+    data?: MediaKitDetailsResponse["data"]; // Reuse existing type for full mediakit data
+    message?: string;
+    error?: string;
 }

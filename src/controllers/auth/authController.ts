@@ -25,6 +25,8 @@ import { CoinMilestoneType, ICoinTransaction, TransactionType } from "../../type
 import { ID } from "../../types/common";
 import { generateToken } from "../../utils/jwt";
 import { IBankDetail, IClientDetail, IInvoice, IRecipientDetail } from "@/types/invoice";
+import { MediaKitModel } from "../../models/mediakit/model";
+import { IMediaKit } from "../../types/mediakit";
 
 
 export class AuthController {
@@ -207,7 +209,7 @@ export class AuthController {
                 }).populate<{ invoices: IInvoice[] }>({
                     path: "invoices",
                 }).populate<{ clientDetails: IClientDetail[] }>({
-                    path: "clientDetails",
+                    path: "clientDetails",  
                 }).populate<{ recipientDetails: IRecipientDetail[] }>({
                     path: "recipientDetails",
                 })
@@ -218,6 +220,7 @@ export class AuthController {
             const recipientDetails = await RecipientDetailModel.find({
                 userId,
             });
+            const mediaKit = await MediaKitModel.findOne({ userId });
 
             if (!user) {
                 res.status(404).json({
@@ -257,6 +260,7 @@ export class AuthController {
                         description: tx.description,
                         createdAt: tx.createdAt,
                     })),
+                    mediaKit: mediaKit as IMediaKit,
                 },
             });
         } catch (error) {
