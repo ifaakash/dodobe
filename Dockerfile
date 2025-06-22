@@ -9,7 +9,7 @@ RUN npm install -g pnpm@8.15.4
 # Copy only whats needed for dependencies & Install
 COPY package*.json pnpm-lock.yaml ./
 RUN pnpm clean
-RUN pnpm i
+RUN pnpm i --frozen-lockfile
 
 # copy the rest application code
 COPY . .
@@ -26,10 +26,9 @@ COPY --from=builder ./app/package*.json ./
 COPY --from=builder /app/pnpm-lock.yaml ./
 COPY --from=builder /app/src/docs ./src/docs
 COPY --from=builder /app/src/docs ./dist/docs
-COPY --from=builder /app/.env ./
 
 # Install only production dependencies
-RUN npm install -g pnpm && pnpm install
+RUN npm install -g pnpm && pnpm install --prod --frozen-lockfile && pnpm store prune
 
 # Expose the port your app listens on
 # Backedn code has port 3002

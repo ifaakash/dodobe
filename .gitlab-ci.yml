@@ -20,6 +20,8 @@ cache:
 # start the runner for image building
 start_ec2:
   stage: runner_startup
+  rules:
+    - when: always
   image: python:3.9
   script:
     - pip install boto3
@@ -76,6 +78,8 @@ build_deploy_dev:
 # Cleanup runner for any image
 deprecated_image:
   stage: cleanup_runner
+  rules:
+    - when: always
   tags:
     - dodo-group-runner
   script:
@@ -87,6 +91,8 @@ deprecated_image:
 # stop the runner after deployment
 stop_ec2:
   stage: runner_shutdown
+  rules:
+    - when: always
   image: python:3.9
   script:
     - pip install boto3
