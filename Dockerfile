@@ -28,7 +28,7 @@ COPY --from=builder /app/src/docs ./src/docs
 COPY --from=builder /app/src/docs ./dist/docs
 
 # Install only production dependencies
-RUN npm install -g pnpm && pnpm install --prod --frozen-lockfile && pnpm store prune
+RUN npm install -g pnpm@8.15.4 && pnpm install --prod --frozen-lockfile && pnpm store prune
 
 # Expose the port your app listens on
 # Backedn code has port 3002
