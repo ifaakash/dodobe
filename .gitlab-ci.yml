@@ -20,6 +20,10 @@ cache:
 # start the runner for image building
 start_ec2:
   stage: runner_startup
+  # Trigger stage only when the commit branch is either "production" or "development"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "production" || $CI_COMMIT_BRANCH == "development"'
+      when: always
   image: python:3.9
   script:
     - pip install boto3
@@ -34,6 +38,9 @@ build_deploy_prod:
   image: bitnami/git:latest
   # Run the branch only if the commit tag has regex like production-*( starting with production )
   rules:
+    # Trigger the job only when the commit branch is either "production" or "development"
+    - if: '$CI_COMMIT_BRANCH == "production"'
+      when: always
     # Trigger the deployment when the push is directly made to production branch
     - if: "$CI_COMMIT_TAG =~ /^production-.*$/"
       when: always
@@ -76,6 +83,10 @@ build_deploy_dev:
 # Cleanup runner for any image
 deprecated_image:
   stage: cleanup_runner
+  # Trigger stage only when the commit branch is either "production" or "development"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "production" || $CI_COMMIT_BRANCH == "development"'
+      when: always
   tags:
     - dodo-group-runner
   script:
@@ -87,6 +98,10 @@ deprecated_image:
 # stop the runner after deployment
 stop_ec2:
   stage: runner_shutdown
+  # Trigger stage only when the commit branch is either "production" or "development"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "production" || $CI_COMMIT_BRANCH == "development"'
+      when: always
   image: python:3.9
   script:
     - pip install boto3
