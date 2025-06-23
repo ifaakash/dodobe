@@ -15,6 +15,10 @@ import {
     CreateMediaKitRequest,
     CreateMediaKitResponse,
     AddBrandCollabRequestBody,
+    UpdateBrandCollabRequestBody,
+    UpdateBrandCollabResponse,
+    DeleteBrandCollabRequestBody,
+    DeleteBrandCollabResponse,
     LinkMediaKitRequestBody,
     LinkMediaKitResponse,
 } from "../../types/mediakit";
@@ -175,8 +179,8 @@ export class MediaKitController {
             const engagementRate =
                 followers > 0
                     ? ((Number(avgLikes) + Number(avgComments)) /
-                        Number(followers)) *
-                    100
+                          Number(followers)) *
+                      100
                     : 0;
             const verified = isVerified || false;
 
@@ -332,6 +336,150 @@ export class MediaKitController {
             });
         } catch (error) {
             console.error("Error adding brand collaboration:", error);
+            return res.status(500).json({
+                success: false,
+                message: "Internal Server Error",
+                error: (error as Error).message,
+            });
+        }
+    }
+
+    public static async updateBrandCollab(
+        req: Request<{}, {}, UpdateBrandCollabRequestBody>,
+        res: Response<UpdateBrandCollabResponse>
+    ) {
+        const { instaId, brandId, updates } = req.body;
+
+        if (!instaId || !brandId) {
+            return res.status(400).json({
+                success: false,
+                message: "instaId and brandId are required",
+            });
+        }
+
+        if (!updates || Object.keys(updates).length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "No updates provided",
+            });
+        }
+
+        try {
+            const mediaKit = await MediaKitModel.findOne({ instaId });
+
+            if (!mediaKit) {
+                return res.status(404).json({
+                    success: false,
+                    message: "MediaKit not found for this instaId",
+                });
+            }
+
+            if (!mediaKit.brandCollabs || !mediaKit.brandCollabs.brands) {
+                return res.status(404).json({
+                    success: false,
+                    message: "No brand collaborations found for this MediaKit",
+                });
+            }
+
+            // Find the brand collaboration by brandId
+            const brandIndex = mediaKit.brandCollabs.brands.findIndex(
+                (brand) => brand._id?.toString() === brandId
+            );
+
+            if (brandIndex === -1) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Brand collaboration not found",
+                });
+            }
+
+            // Update the brand collaboration
+            Object.assign(mediaKit.brandCollabs.brands[brandIndex], {
+                ...updates,
+                updatedAt: new Date(),
+            });
+
+            await mediaKit.save();
+
+            return res.status(200).json({
+                success: true,
+                message: "Brand collaboration updated successfully",
+                data: mediaKit,
+            });
+        } catch (error) {
+            console.error("Error updating brand collaboration:", error);
+            return res.status(500).json({
+                success: false,
+                message: "Internal Server Error",
+                error: (error as Error).message,
+            });
+        }
+    }
+
+    /*
+    @desc Delete a brand collaboration from the media kit
+    @route DELETE /delete-brand-collab
+    @access Authenticated
+    */
+    public static async deleteBrandCollab(
+        req: Request<{}, {}, DeleteBrandCollabRequestBody>,
+        res: Response<DeleteBrandCollabResponse>
+    ) {
+        const { instaId, brandId } = req.body;
+
+        if (!instaId || !brandId) {
+            return res.status(400).json({
+                success: false,
+                message: "instaId and brandId are required",
+            });
+        }
+
+        try {
+            const mediaKit = await MediaKitModel.findOne({ instaId });
+
+            if (!mediaKit) {
+                return res.status(404).json({
+                    success: false,
+                    message: "MediaKit not found for this instaId",
+                });
+            }
+
+            if (!mediaKit.brandCollabs || !mediaKit.brandCollabs.brands) {
+                return res.status(404).json({
+                    success: false,
+                    message: "No brand collaborations found for this MediaKit",
+                });
+            }
+
+            // Find the brand collaboration by brandId
+            const brandIndex = mediaKit.brandCollabs.brands.findIndex(
+                (brand) => brand._id?.toString() === brandId
+            );
+
+            if (brandIndex === -1) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Brand collaboration not found",
+                });
+            }
+
+            // Remove the brand collaboration
+            mediaKit.brandCollabs.brands.splice(brandIndex, 1);
+
+            // If no brands left, set brandCollabs to inactive
+            if (mediaKit.brandCollabs.brands.length === 0) {
+                mediaKit.brandCollabs.isActive = false;
+            }
+
+            await mediaKit.save();
+
+            return res.status(200).json({
+                success: true,
+                message: "Brand collaboration deleted successfully",
+                data: mediaKit,
+            });
+        } catch (error) {
+            console.error("Error deleting brand collaboration:", error);
             return res.status(500).json({
                 success: false,
                 message: "Internal Server Error",

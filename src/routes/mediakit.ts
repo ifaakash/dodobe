@@ -30,6 +30,20 @@ router.post(
     MediaKitController.addBrandCollab
 );
 
+// Route to update brand collaboration
+router.patch(
+    "/update-brand-collab",
+    // authenticateUser,
+    MediaKitController.updateBrandCollab
+);
+
+// Route to delete brand collaboration
+router.delete(
+    "/delete-brand-collab",
+    // authenticateUser,
+    MediaKitController.deleteBrandCollab
+);
+
 // Link media kit to a user
 router.post(
     "/link-mediakit-to-user",

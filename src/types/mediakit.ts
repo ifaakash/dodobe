@@ -1,6 +1,7 @@
 import { BaseDocument, ID } from "./common";
 
 export interface BrandCollab {
+    _id?: ID;
     brandName: string;
     contentType: string;
     contentUrl?: string;
@@ -178,5 +179,30 @@ export interface UploadAnalyticsResponse {
     success: boolean;
     data?: MediaKitDetailsResponse["data"]; // Reuse existing type for full mediakit data
     message?: string;
+    error?: string;
+}
+
+export interface UpdateBrandCollabRequestBody {
+    instaId: string;
+    brandId: string; // mongoose ID of the specific brand collab
+    updates: Partial<BrandCollab>;
+}
+
+export interface UpdateBrandCollabResponse {
+    success: boolean;
+    message: string;
+    data?: IMediaKit;
+    error?: string;
+}
+
+export interface DeleteBrandCollabRequestBody {
+    instaId: string;
+    brandId: string; // mongoose ID of the specific brand collab
+}
+
+export interface DeleteBrandCollabResponse {
+    success: boolean;
+    message: string;
+    data?: IMediaKit;
     error?: string;
 }
