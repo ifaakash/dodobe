@@ -21,6 +21,7 @@ import {
     DeleteBrandCollabResponse,
     LinkMediaKitRequestBody,
     LinkMediaKitResponse,
+    IMediaKit,
 } from "../../types/mediakit";
 import { UserModel } from "../../models/user/model";
 import {
@@ -30,6 +31,7 @@ import {
 } from "../../models/mediakit/schema";
 import { GeminiService } from "../../utils/geminiService";
 import { logger } from "../../utils/logger";
+import { IDodoPage, IUserInterestCategory } from "../../types/user";
 
 export class MediaKitController {
     // POST /verify
@@ -122,18 +124,31 @@ export class MediaKitController {
         try {
             const mediaKit = await MediaKitModel.findOne({ instaId });
 
-            const user = await UserModel.findById(mediaKit?.userId);
+            const user = await UserModel.findById(mediaKit?.userId).populate<{ dodoPages: IDodoPage[], interestCategories: IUserInterestCategory[] }>(
+                "dodoPages interestCategories"
+            );
 
-            console.log(user);
             if (!mediaKit) {
                 return res.status(404).json({
                     success: false,
                     message: "MediaKit not found for this instaId",
                 });
             }
+
+            const mediaKitData = mediaKit.toObject();
+            console.log('mediaKitData', mediaKitData);
+            const userInterestCategories = user?.interestCategories?.map((id) => id.category) || [];
+
+            // Add user data to the mediakit object
+            mediaKitData.user = {
+                name: user?.name || null,
+                profilePicture: user?.dodoPages?.[0]?.profilePicture || null,
+                intrestCategories: userInterestCategories,
+            };
+
             return res.status(200).json({
                 success: true,
-                data: mediaKit,
+                data: mediaKitData,
             });
         } catch (error) {
             console.error("Error fetching details:", error);
@@ -179,8 +194,8 @@ export class MediaKitController {
             const engagementRate =
                 followers > 0
                     ? ((Number(avgLikes) + Number(avgComments)) /
-                          Number(followers)) *
-                      100
+                        Number(followers)) *
+                    100
                     : 0;
             const verified = isVerified || false;
 

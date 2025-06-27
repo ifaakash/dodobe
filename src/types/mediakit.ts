@@ -63,6 +63,11 @@ export interface IMediaKit extends BaseDocument {
         isActive: boolean;
         brands: BrandCollab[];
     };
+    user?: {
+        name: string | null;
+        profilePicture: string | null;
+        intrestCategories: string[];
+    };
 }
 
 export interface LinkMediaKitRequestBody {
