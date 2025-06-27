@@ -33,7 +33,7 @@ export interface GenderAnalytics {
 
 export interface AgeAnalytics {
     ageData: {
-        ageGroups: Map<string, number>;
+        ageGroups: Map<string, number> | { [key: string]: number };
     };
     uploadedAt: Date;
     isActive: boolean;
@@ -41,7 +41,7 @@ export interface AgeAnalytics {
 
 export interface LocationAnalytics {
     locationData: {
-        locations: Map<string, number>;
+        locations: Map<string, number> | { [key: string]: number };
     };
     uploadedAt: Date;
     isActive: boolean;
@@ -62,6 +62,11 @@ export interface IMediaKit extends BaseDocument {
     brandCollabs?: {
         isActive: boolean;
         brands: BrandCollab[];
+    };
+    user?: {
+        name: string | null;
+        profilePicture: string | null;
+        interestCategories: string[];
     };
 }
 
