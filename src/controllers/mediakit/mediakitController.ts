@@ -24,11 +24,6 @@ import {
     IMediaKit,
 } from "../../types/mediakit";
 import { UserModel } from "../../models/user/model";
-import {
-    AgeAnalyticsSchema,
-    ContentAnalyticsSchema,
-    GenderAnalyticsSchema,
-} from "../../models/mediakit/schema";
 import { GeminiService } from "../../utils/geminiService";
 import { logger } from "../../utils/logger";
 import { IDodoPage, IUserInterestCategory } from "../../types/user";
@@ -131,19 +126,30 @@ export class MediaKitController {
                 });
             }
 
-            const user = await UserModel.findById(mediaKit?.userId).populate<{ dodoPages: IDodoPage[], interestCategories: IUserInterestCategory[] }>(
-                "dodoPages interestCategories"
-            );
+            const user = await UserModel.findById(mediaKit?.userId).populate<{
+                dodoPages: IDodoPage[];
+                interestCategories: IUserInterestCategory[];
+            }>("dodoPages interestCategories");
 
             const mediaKitData = mediaKit.toObject();
-            const userInterestCategories = user?.interestCategories?.map((id) => id.category) || [];
+            const userInterestCategories =
+                user?.interestCategories?.map((id) => id.category) || [];
 
             // Convert Map data structures to regular objects
             if (mediaKitData.ageAnalytics?.ageData?.ageGroups instanceof Map) {
-                mediaKitData.ageAnalytics.ageData.ageGroups = Object.fromEntries(mediaKitData.ageAnalytics.ageData.ageGroups);
+                mediaKitData.ageAnalytics.ageData.ageGroups =
+                    Object.fromEntries(
+                        mediaKitData.ageAnalytics.ageData.ageGroups
+                    );
             }
-            if (mediaKitData.locationAnalytics?.locationData?.locations instanceof Map) {
-                mediaKitData.locationAnalytics.locationData.locations = Object.fromEntries(mediaKitData.locationAnalytics.locationData.locations);
+            if (
+                mediaKitData.locationAnalytics?.locationData
+                    ?.locations instanceof Map
+            ) {
+                mediaKitData.locationAnalytics.locationData.locations =
+                    Object.fromEntries(
+                        mediaKitData.locationAnalytics.locationData.locations
+                    );
             }
 
             // Always ensure user object exists with default values
@@ -175,9 +181,9 @@ export class MediaKitController {
         const {
             instaId,
             followers,
+            mediaCount,
             avgLikes,
             avgComments,
-            mediaCount,
             following,
             isVerified,
         } = req.body;
@@ -201,8 +207,8 @@ export class MediaKitController {
             const engagementRate =
                 followers > 0
                     ? ((Number(avgLikes) + Number(avgComments)) /
-                        Number(followers)) *
-                    100
+                          Number(followers)) *
+                      100
                     : 0;
             const verified = isVerified || false;
 
@@ -212,16 +218,10 @@ export class MediaKitController {
                 isVerified: verified,
                 followers,
                 following,
+                avgLikes,
+                avgComments,
                 mediaCount,
                 engagement: engagementRate,
-                contentAnalytics: {
-                    contentData: {
-                        avgLikes,
-                        avgComments,
-                        mediaCount,
-                    },
-                    uploadedAt: new Date(),
-                },
             });
 
             return res.status(201).json({
@@ -253,7 +253,10 @@ export class MediaKitController {
             });
         }
 
-        if ((!updates || Object.keys(updates).length === 0) && !mediaKitProfileImage) {
+        if (
+            (!updates || Object.keys(updates).length === 0) &&
+            !mediaKitProfileImage
+        ) {
             return res.status(400).json({
                 success: false,
                 message: "No updates provided",
@@ -271,11 +274,14 @@ export class MediaKitController {
             }
 
             if (mediaKitProfileImage) {
-                const mediaKitProfileImageUrl = await uploadToS3(mediaKitProfileImage, "media-kit-profile-images");
+                const mediaKitProfileImageUrl = await uploadToS3(
+                    mediaKitProfileImage,
+                    "media-kit-profile-images"
+                );
                 mediaKit.mediaKitProfileImage = mediaKitProfileImageUrl;
             }
 
-                // Update the provided fields
+            // Update the provided fields
             Object.assign(mediaKit, updates);
             await mediaKit.save();
 

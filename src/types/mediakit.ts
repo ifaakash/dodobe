@@ -14,10 +14,9 @@ export interface BrandCollab {
 
 export interface ContentAnalytics {
     contentData: {
-        avgLikes: number;
-        avgComments: number;
-        mediaCount?: number;
-        engagement?: number;
+        posts: number;
+        stories: number;
+        reels: number;
     };
     uploadedAt: Date;
 }
@@ -54,6 +53,10 @@ export interface IMediaKit extends BaseDocument {
     userId?: ID;
     isVerified?: boolean;
     following?: number;
+    avgLikes: number;
+    avgComments: number;
+    mediaCount: number;
+    engagement: number;
     grade?: string;
     contentAnalytics?: ContentAnalytics;
     genderAnalytics?: GenderAnalytics;

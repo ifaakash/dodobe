@@ -50,8 +50,12 @@ const MediaKitSchema: Schema = new Schema(
         isVerified: { type: Boolean, default: false },
         followers: { type: Number, min: 0 },
         following: { type: Number, min: 0 },
+        avgLikes: { type: Number, min: 0 },
+        avgComments: { type: Number, min: 0 },
+        mediaCount: { type: Number, min: 0 },
         grade: { type: String, required: false },
         mediaKitProfileImage: { type: String, required: false },
+        engagement: { type: Number, min: 0 },
         brandCollabs: {
             isActive: { type: Boolean, default: false },
             brands: { type: [BrandCollabSchema], default: [] },
@@ -70,7 +74,6 @@ const MediaKitSchema: Schema = new Schema(
             ageData: { type: AgeAnalyticsSchema },
             uploadedAt: { type: Date },
         },
-        engagement: { type: Number, min: 0 },
         locationAnalytics: {
             isActive: { type: Boolean, default: false },
             locationData: { type: LocationAnalyticsSchema },
