@@ -15,15 +15,14 @@ export class GeminiService {
     private static readonly PROMPTS = {
         content: `Analyze this Instagram analytics screenshot for content metrics. 
       
-      IMPORTANT: If this screenshot does not show Instagram content analytics/insights (posts, likes, comments, media count), return exactly:
+      IMPORTANT: If this screenshot does not show Instagram content analytics/insights (posts, stories, reels), return exactly:
       { "error": "Invalid screenshot for content analytics" }
       
       Otherwise, extract and return ONLY these fields in JSON format:
       {
-        "mediaCount": number,
-        "engagement": number,
-        "avgLikes": number,
-        "avgComments": number
+        "posts": number,
+        "stories": number,
+        "reels": number,
       }`,
         gender: `Analyze this Instagram demographics screenshot for gender distribution.
       

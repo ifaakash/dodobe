@@ -14,9 +14,9 @@ const BrandCollabSchema = new Schema(
 
 const ContentAnalyticsSchema = new Schema(
     {
-        mediaCount: { type: Number, min: 0 },
-        avgLikes: { type: Number, min: 0 },
-        avgComments: { type: Number, min: 0 },
+        posts: { type: Number, min: 0 },
+        stories: { type: Number, min: 0 },
+        reels: { type: Number, min: 0 },
     },
     { _id: false }
 );
@@ -51,6 +51,7 @@ const MediaKitSchema: Schema = new Schema(
         followers: { type: Number, min: 0 },
         following: { type: Number, min: 0 },
         grade: { type: String, required: false },
+        mediaKitProfileImage: { type: String, required: false },
         brandCollabs: {
             isActive: { type: Boolean, default: false },
             brands: { type: [BrandCollabSchema], default: [] },

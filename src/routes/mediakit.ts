@@ -18,7 +18,7 @@ router.get("/get-by-instaId/:instaId", MediaKitController.getDetailsByInstaId);
 router.post("/create", MediaKitController.createMediaKit);
 
 // Update an existing media kit details by instaId
-router.patch("/update", MediaKitController.updateMediaKit);
+router.patch("/update", upload.single("mediaKitProfileImage"), handleFileUploadError, MediaKitController.updateMediaKit);
 
 // Authenticated routes
 // Route to add brand collaboration
