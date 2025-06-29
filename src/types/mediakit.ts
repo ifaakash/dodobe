@@ -59,6 +59,7 @@ export interface IMediaKit extends BaseDocument {
     genderAnalytics?: GenderAnalytics;
     ageAnalytics?: AgeAnalytics;
     locationAnalytics?: LocationAnalytics;
+    mediaKitProfileImage?: string;
     brandCollabs?: {
         isActive: boolean;
         brands: BrandCollab[];
@@ -163,6 +164,7 @@ export type AllowedMediaKitUpdates = {
 export interface UpdateMediaKitRequest {
     instaId: string;
     updates: AllowedMediaKitUpdates;
+    mediaKitProfileImage?: Express.Multer.File;
 }
 
 export interface UpdateMediaKitResponse {

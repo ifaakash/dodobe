@@ -245,7 +245,7 @@ export class MediaKitController {
         res: Response<UpdateMediaKitResponse>
     ) {
         const { instaId, updates } = req.body;
-
+        const mediaKitProfileImage = req.file;
         if (!instaId) {
             return res.status(400).json({
                 success: false,
@@ -253,7 +253,7 @@ export class MediaKitController {
             });
         }
 
-        if (!updates || Object.keys(updates).length === 0) {
+        if ((!updates || Object.keys(updates).length === 0) && !mediaKitProfileImage) {
             return res.status(400).json({
                 success: false,
                 message: "No updates provided",
@@ -270,7 +270,12 @@ export class MediaKitController {
                 });
             }
 
-            // Update the provided fields
+            if (mediaKitProfileImage) {
+                const mediaKitProfileImageUrl = await uploadToS3(mediaKitProfileImage, "media-kit-profile-images");
+                mediaKit.mediaKitProfileImage = mediaKitProfileImageUrl;
+            }
+
+                // Update the provided fields
             Object.assign(mediaKit, updates);
             await mediaKit.save();
 
