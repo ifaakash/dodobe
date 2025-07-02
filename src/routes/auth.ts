@@ -13,6 +13,6 @@ router.post("/complete-profile", AuthController.completeProfile);
 router.get("/user/:userId", AuthController.getUserDetails);
 
 // Update user details
-// router.patch("/update/:userId", AuthController.updateUserDetails);
+router.patch("/update/:userId", AuthController.updateUserDetails);
 
 export { router as authRouter };
