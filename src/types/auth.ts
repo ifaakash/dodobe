@@ -43,6 +43,9 @@ export interface GetUserDetailsResponse {
         firebaseUid: any;
         name: string;
         mobileNumber: string;
+        email?: string;
+        alternatePhoneNumber?: string;
+        whatsappNumber?: string;
         interestCategories: string[];
         dodoPages: {
             id: ID;
@@ -58,7 +61,7 @@ export interface GetUserDetailsResponse {
         coinTransactions: {
             id: ID;
             amount: number;
-            transactionType: TransactionType;   
+            transactionType: TransactionType;
             description: string;
             createdAt: Date;
         }[];
@@ -68,4 +71,21 @@ export interface GetUserDetailsResponse {
 export interface UpdateUserDetailsResponseError {
     success: false;
     message: string;
+}
+
+export interface UpdateUserDetailsRequest {
+    email?: string;
+    alternatePhoneNumber?: string;
+    whatsappNumber?: string;
+}
+
+export interface UpdateUserDetailsResponse {
+    success: true;
+    message: string;
+    user: {
+        id: ID;
+        email?: string;
+        alternatePhoneNumber?: string;
+        whatsappNumber?: string;
+    };
 }

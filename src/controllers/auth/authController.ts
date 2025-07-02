@@ -16,18 +16,28 @@ import {
     GetUserDetailsResponse,
     RegisterRequest,
     RegisterResponse,
+    UpdateUserDetailsRequest,
+    UpdateUserDetailsResponse,
     UpdateUserDetailsResponseError,
 } from "../../types/auth";
 import mongoose, { Types } from "mongoose";
 import { IUserInterestCategory, IDodoPage } from "../../types/user";
 import { FileManager } from "../../utils/fileManager";
-import { CoinMilestoneType, ICoinTransaction, TransactionType } from "../../types/dodoCoin";
+import {
+    CoinMilestoneType,
+    ICoinTransaction,
+    TransactionType,
+} from "../../types/dodoCoin";
 import { ID } from "../../types/common";
 import { generateToken } from "../../utils/jwt";
-import { IBankDetail, IClientDetail, IInvoice, IRecipientDetail } from "@/types/invoice";
+import {
+    IBankDetail,
+    IClientDetail,
+    IInvoice,
+    IRecipientDetail,
+} from "@/types/invoice";
 import { MediaKitModel } from "../../models/mediakit/model";
 import { IMediaKit } from "../../types/mediakit";
-
 
 export class AuthController {
     /**
@@ -64,11 +74,11 @@ export class AuthController {
             });
 
             const transaction = await CoinTransactionModel.create({
-                userId : newUser._id,
-                amount : 200,
-                transactionType : TransactionType.EARNED,
-                description : 'Dodo page created',
-                milestoneType : CoinMilestoneType.CREATE_DODO_PAGE,
+                userId: newUser._id,
+                amount: 200,
+                transactionType: TransactionType.EARNED,
+                description: "Dodo page created",
+                milestoneType: CoinMilestoneType.CREATE_DODO_PAGE,
             });
             // Update user's dodoCoins
             newUser.dodoCoins = (newUser.dodoCoins || 0) + transaction.amount;
@@ -204,15 +214,19 @@ export class AuthController {
                 .populate<{ coinTransactions: ICoinTransaction[] }>({
                     path: "coinTransactions",
                     select: "_id amount transactionType description createdAt",
-                }).populate<{ bankDetails: IBankDetail[] }>({
-                    path: "bankDetails",
-                }).populate<{ invoices: IInvoice[] }>({
-                    path: "invoices",
-                }).populate<{ clientDetails: IClientDetail[] }>({
-                    path: "clientDetails",  
-                }).populate<{ recipientDetails: IRecipientDetail[] }>({
-                    path: "recipientDetails",
                 })
+                .populate<{ bankDetails: IBankDetail[] }>({
+                    path: "bankDetails",
+                })
+                .populate<{ invoices: IInvoice[] }>({
+                    path: "invoices",
+                })
+                .populate<{ clientDetails: IClientDetail[] }>({
+                    path: "clientDetails",
+                })
+                .populate<{ recipientDetails: IRecipientDetail[] }>({
+                    path: "recipientDetails",
+                });
 
             const bankDetails = await BankDetailModel.find({ userId });
             const invoices = await InvoiceModel.find({ userId });
@@ -237,6 +251,9 @@ export class AuthController {
                     firebaseUid: user.firebaseUid,
                     name: user.name,
                     mobileNumber: user.mobileNumber,
+                    email: user.email,
+                    alternatePhoneNumber: user.alternatePhoneNumber,
+                    whatsappNumber: user.whatsappNumber,
                     interestCategories: user.interestCategories.map(
                         (ic: IUserInterestCategory) => ic.category
                     ),
@@ -265,6 +282,104 @@ export class AuthController {
             });
         } catch (error) {
             logger.error("Error in getUserDetails:", error);
+            res.status(500).json({
+                success: false,
+                message: "Internal server error: " + error,
+            });
+        }
+    }
+
+    /**
+     * Update user details (email, alternate phone number, whatsapp number)
+     */
+    public static async updateUserDetails(
+        req: Request<{ userId: string }, {}, UpdateUserDetailsRequest>,
+        res: Response<
+            UpdateUserDetailsResponse | UpdateUserDetailsResponseError
+        >
+    ): Promise<void> {
+        const { userId } = req.params;
+        const { email, alternatePhoneNumber, whatsappNumber } = req.body;
+
+        try {
+            // Validate if userId is a valid ObjectId
+            if (!mongoose.Types.ObjectId.isValid(userId)) {
+                res.status(400).json({
+                    success: false,
+                    message: "Invalid user ID format",
+                });
+                return;
+            }
+
+            // Find the user
+            const user = await UserModel.findById(userId);
+
+            if (!user) {
+                res.status(404).json({
+                    success: false,
+                    message: "User not found",
+                });
+                return;
+            }
+
+            // Update only provided fields
+            const updateFields: Partial<{
+                email: string;
+                alternatePhoneNumber: string;
+                whatsappNumber: string;
+            }> = {};
+
+            if (email !== undefined) {
+                updateFields.email = email;
+            }
+            if (alternatePhoneNumber !== undefined) {
+                updateFields.alternatePhoneNumber = alternatePhoneNumber;
+            }
+            if (whatsappNumber !== undefined) {
+                updateFields.whatsappNumber = whatsappNumber;
+            }
+
+            // If no fields to update
+            if (Object.keys(updateFields).length === 0) {
+                res.status(400).json({
+                    success: false,
+                    message: "No valid fields provided for update",
+                });
+                return;
+            }
+
+            // Update user with new fields
+            const updatedUser = await UserModel.findByIdAndUpdate(
+                userId,
+                updateFields,
+                { new: true, runValidators: true }
+            );
+
+            if (!updatedUser) {
+                res.status(404).json({
+                    success: false,
+                    message: "Failed to update user",
+                });
+                return;
+            }
+
+            logger.info(
+                `User details updated for userId: ${userId}`,
+                updateFields
+            );
+
+            res.status(200).json({
+                success: true,
+                message: "User details updated successfully",
+                user: {
+                    id: updatedUser._id as ID,
+                    email: updatedUser.email,
+                    alternatePhoneNumber: updatedUser.alternatePhoneNumber,
+                    whatsappNumber: updatedUser.whatsappNumber,
+                },
+            });
+        } catch (error) {
+            logger.error("Error in updateUserDetails:", error);
             res.status(500).json({
                 success: false,
                 message: "Internal server error: " + error,
