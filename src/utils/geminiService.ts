@@ -46,14 +46,14 @@ export class GeminiService {
       Use the exact age ranges shown in the screenshot. Return percentages as numbers without % symbol.`,
         location: `Analyze this Instagram demographics screenshot for location distribution.
       
-      IMPORTANT: If this screenshot does not show Instagram location/country demographics/audience insights, return exactly:
+      IMPORTANT: If this screenshot does not show Instagram location/city demographics/audience insights, return exactly:
       { "error": "Invalid screenshot for location analytics" }
       
       Otherwise, extract and return ONLY in this JSON format:
       {
-        "locations": { "United States": 45.2, "India": 23.8, "United Kingdom": 15.6, "Canada": 8.4 }
+        "locations": { "Delhi": 45.2, "Mumbai": 23.8, "Kolkata": 15.6, "Chennai": 8.4 }
       }
-      Use the exact location names shown in the screenshot. Return percentages as numbers without % symbol.`,
+      Use the exact location names shown in the screenshot BUT only CITIES/TOWNS and not countries. If you see country names in the screenshot as country demographics, ignore them. Return percentages as numbers without % symbol.`,
     };
 
     static async extractAnalytics(imageBase64: string, type: AnalyticsType) {
