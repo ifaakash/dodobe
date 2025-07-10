@@ -153,6 +153,9 @@ export type AllowedMediaKitUpdates = {
     followers?: number;
     following?: number;
     isVerified?: boolean;
+    avgLikes?: number;
+    avgComments?: number;
+    mediaCount?: number;
     grade?: string;
     brandCollabs?: {
         isActive: boolean;

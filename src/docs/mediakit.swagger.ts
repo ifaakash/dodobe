@@ -25,13 +25,44 @@
  *         following:
  *           type: number
  *           description: Number of following
+ *         mediaCount:
+ *           type: number
+ *           description: Number of media posts
+ *         avgLikes:
+ *           type: number
+ *           description: Average likes per post
+ *         avgComments:
+ *           type: number
+ *           description: Average comments per post
+ *         engagement:
+ *           type: number
+ *           description: Engagement rate
  *         grade:
  *           type: string
  *           description: The grade/rating of the media kit
+ *         mediaKitProfileImage:
+ *           type: string
+ *           description: URL of the media kit profile image
  *         brandCollabs:
  *           type: array
  *           items:
  *             $ref: '#/components/schemas/BrandCollab'
+ *         user:
+ *           type: object
+ *           properties:
+ *             name:
+ *               type: string
+ *               nullable: true
+ *               description: Name of the user
+ *             profilePicture:
+ *               type: string
+ *               nullable: true
+ *               description: URL of the user's profile picture
+ *             interestCategories:
+ *               type: array
+ *               items:
+ *                 type: string
+ *               description: List of user's interest categories
  *         contentAnalytics:
  *           type: object
  *           properties:
@@ -533,28 +564,45 @@
  *             type: object
  *             required:
  *               - instaId
+ *               - updates
  *             properties:
  *               instaId:
  *                 type: string
  *                 description: The Instagram ID of the media kit to update
- *               followers:
- *                 type: number
- *                 description: Number of followers
- *               following:
- *                 type: number
- *                 description: Number of following
- *               mediaCount:
- *                 type: number
- *                 description: Number of media posts
- *               avgLikes:
- *                 type: number
- *                 description: Average likes per post
- *               avgComments:
- *                 type: number
- *                 description: Average comments per post
- *               isVerified:
- *                 type: boolean
- *                 description: Whether the media kit is verified
+ *               updates:
+ *                 type: object
+ *                 description: Object containing the fields to update
+ *                 properties:
+ *                   followers:
+ *                     type: number
+ *                     description: Number of followers
+ *                   following:
+ *                     type: number
+ *                     description: Number of following
+ *                   mediaCount:
+ *                     type: number
+ *                     description: Number of media posts
+ *                   avgLikes:
+ *                     type: number
+ *                     description: Average likes per post
+ *                   avgComments:
+ *                     type: number
+ *                     description: Average comments per post
+ *                   isVerified:
+ *                     type: boolean
+ *                     description: Whether the media kit is verified
+ *                   grade:
+ *                     type: string
+ *                     description: Grade of the media kit
+ *             example:
+ *               instaId: "ksatyarth2"
+ *               updates:
+ *                 followers: 1205
+ *                 following: 850
+ *                 mediaCount: 154
+ *                 avgLikes: 245
+ *                 avgComments: 3
+ *                 isVerified: true
  *     responses:
  *       200:
  *         description: Media kit updated successfully
@@ -569,6 +617,9 @@
  *                 message:
  *                   type: string
  *                   example: MediaKit updated successfully
+ *                 data:
+ *                   $ref: '#/components/schemas/MediaKit'
+ *                   description: Updated media kit data
  *       400:
  *         description: Invalid input
  *         content:

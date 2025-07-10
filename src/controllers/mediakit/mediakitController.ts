@@ -253,10 +253,7 @@ export class MediaKitController {
             });
         }
 
-        if (
-            (!updates || Object.keys(updates).length === 0) &&
-            !mediaKitProfileImage
-        ) {
+        if (!updates || Object.keys(updates).length === 0) {
             return res.status(400).json({
                 success: false,
                 message: "No updates provided",
