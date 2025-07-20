@@ -60,5 +60,11 @@ router.post(
     MediaKitController.uploadAnalytics
 );
 
+// Join waitlist for media kit
+router.post(
+    "/join-waitlist",
+    authenticateUser,
+    MediaKitController.joinWaitlist
+);
 
 export { router as mediakitRouter };

@@ -12,6 +12,15 @@ interface Config {
     jwtSecret: string;
     uploadDir: string;
     baseUrl: string;
+    email: {
+        host: string;
+        port: number;
+        secure: boolean;
+        user: string;
+        pass: string;
+        from: string;
+        adminEmail: string;
+    };
 }
 
 export const config: Config = {
@@ -22,6 +31,15 @@ export const config: Config = {
         process.env.JWT_SECRET || "your-default-secret-key-for-development",
     uploadDir: process.env.UPLOAD_DIR || "uploads",
     baseUrl: process.env.BASE_URL || "http://localhost:3002",
+    email: {
+        host: process.env.EMAIL_HOST || "smtp.gmail.com",
+        port: parseInt(process.env.EMAIL_PORT || "587"),
+        secure: process.env.EMAIL_SECURE === "true",
+        user: process.env.EMAIL_USER || "work.dodoclub@gmail.com",
+        pass: process.env.EMAIL_PASS || "",
+        from: process.env.EMAIL_FROM || "work.dodoclub@gmail.com",
+        adminEmail: process.env.ADMIN_EMAIL || "work.dodoclub@gmail.com",
+    },
 };
 
 // Test environment specific overrides

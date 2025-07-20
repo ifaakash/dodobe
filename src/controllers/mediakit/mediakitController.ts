@@ -21,12 +21,15 @@ import {
     DeleteBrandCollabResponse,
     LinkMediaKitRequestBody,
     LinkMediaKitResponse,
+    JoinWaitlistRequestBody,
+    JoinWaitlistResponse,
     IMediaKit,
 } from "../../types/mediakit";
 import { UserModel } from "../../models/user/model";
 import { GeminiService } from "../../utils/geminiService";
 import { logger } from "../../utils/logger";
 import { IDodoPage, IUserInterestCategory } from "../../types/user";
+import { emailService } from "../../utils/emailService";
 
 export class MediaKitController {
     // POST /verify
@@ -600,6 +603,123 @@ export class MediaKitController {
             });
         } catch (error) {
             console.error("Error linking media kit:", error);
+            return res.status(500).json({
+                success: false,
+                message: "Internal Server Error",
+                error: (error as Error).message,
+            });
+        }
+    }
+
+    /*
+    @desc Join waitlist for media kit creation
+    @route POST /join-waitlist
+    @access Authenticated
+    @dev Creates a pending mediakit with queue number for manual processing
+    */
+    public static async joinWaitlist(
+        req: Request<{}, {}, JoinWaitlistRequestBody>,
+        res: Response<JoinWaitlistResponse>
+    ) {
+        const { userId, instaId } = req.body;
+
+        if (!userId || !instaId) {
+            return res.status(400).json({
+                success: false,
+                message: "Both userId and instaId are required",
+            });
+        }
+
+        try {
+            // Convert string userId to ObjectId
+            const userObjectId = new mongoose.Types.ObjectId(userId);
+
+            // Check if user already has a media kit
+            const existingUserMediaKit = await MediaKitModel.findOne({
+                userId: userObjectId,
+            });
+            if (existingUserMediaKit) {
+                return res.status(409).json({
+                    success: false,
+                    message: "User already has a media kit or is in waitlist",
+                });
+            }
+
+            // Check if instaId already exists
+            const existingMediaKit = await MediaKitModel.findOne({ instaId });
+            if (existingMediaKit) {
+                return res.status(409).json({
+                    success: false,
+                    message: "MediaKit with this instaId already exists",
+                });
+            }
+
+            // Check if user exists
+            const user = await UserModel.findById(userObjectId);
+            if (!user) {
+                return res.status(404).json({
+                    success: false,
+                    message: "User not found",
+                });
+            }
+
+            // Generate random queue number between 400-500
+            const queueNumber =
+                Math.floor(Math.random() * (500 - 400 + 1)) + 400;
+            const createdAt = new Date();
+
+            // Create new media kit with default values and waitlist data
+            const mediaKit = await MediaKitModel.create({
+                instaId,
+                userId: userObjectId,
+                isVerified: false,
+                followers: 0,
+                following: 0,
+                mediaCount: 0,
+                engagement: 0,
+                avgLikes: 0,
+                avgComments: 0,
+                queueNumber,
+                waitlistCreatedAt: createdAt,
+                brandCollabs: {
+                    isActive: false,
+                    brands: [],
+                },
+            });
+
+            // Link media kit to user
+            user.mediaKit = mediaKit._id;
+            await user.save();
+
+            // Send notification email to admin team
+            try {
+                await emailService.notifyAdminNewWaitlistRequest({
+                    instaId,
+                    userName: user.name || undefined,
+                    userEmail: user.email || undefined,
+                    userId: userId,
+                    mediaKitId: mediaKit._id.toString(),
+                    queueNumber,
+                    createdAt,
+                });
+                logger.info(`Waitlist notification email sent for ${instaId}`);
+            } catch (emailError) {
+                // Log email error but don't fail the request
+                logger.error(
+                    "Failed to send waitlist notification email:",
+                    emailError
+                );
+            }
+
+            return res.status(201).json({
+                success: true,
+                message:
+                    "Successfully joined the waitlist! You will be notified once your media kit is ready.",
+                queueNumber,
+                createdAt,
+            });
+        } catch (error) {
+            console.error("Error joining waitlist:", error);
             return res.status(500).json({
                 success: false,
                 message: "Internal Server Error",

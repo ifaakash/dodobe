@@ -58,6 +58,8 @@ export interface IMediaKit extends BaseDocument {
     mediaCount: number;
     engagement: number;
     grade?: string;
+    queueNumber?: number;
+    waitlistCreatedAt?: Date;
     contentAnalytics?: ContentAnalytics;
     genderAnalytics?: GenderAnalytics;
     ageAnalytics?: AgeAnalytics;
@@ -217,5 +219,18 @@ export interface DeleteBrandCollabResponse {
     success: boolean;
     message: string;
     data?: IMediaKit;
+    error?: string;
+}
+
+export interface JoinWaitlistRequestBody {
+    instaId: string;
+    userId: string;
+}
+
+export interface JoinWaitlistResponse {
+    success: boolean;
+    message: string;
+    queueNumber?: number;
+    createdAt?: Date;
     error?: string;
 }

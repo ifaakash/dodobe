@@ -56,6 +56,8 @@ const MediaKitSchema: Schema = new Schema(
         grade: { type: String, required: false },
         mediaKitProfileImage: { type: String, required: false },
         engagement: { type: Number, min: 0 },
+        queueNumber: { type: Number, min: 1, required: false },
+        waitlistCreatedAt: { type: Date, required: false },
         brandCollabs: {
             isActive: { type: Boolean, default: false },
             brands: { type: [BrandCollabSchema], default: [] },
