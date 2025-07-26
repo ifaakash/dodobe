@@ -171,7 +171,15 @@ export type AllowedMediaKitUpdates = {
 
 export interface UpdateMediaKitRequest {
     instaId: string;
-    updates: AllowedMediaKitUpdates;
+    updates?: AllowedMediaKitUpdates; // Optional for backward compatibility with JSON format
+    // Individual fields for form-urlencoded format
+    followers?: number;
+    following?: number;
+    isVerified?: boolean;
+    avgLikes?: number;
+    avgComments?: number;
+    mediaCount?: number;
+    grade?: string;
     mediaKitProfileImage?: Express.Multer.File;
 }
 

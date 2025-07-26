@@ -249,6 +249,51 @@ export class MediaKitController {
     ) {
         const { instaId, updates } = req.body;
         const mediaKitProfileImage = req.file;
+
+        // Handle form-urlencoded data by extracting individual fields
+        let actualUpdates: any = {};
+
+        if (updates && typeof updates === "object") {
+            // JSON format with updates object
+            actualUpdates = updates;
+        } else {
+            // Form-urlencoded format - extract individual fields from req.body
+            const {
+                instaId: _, // exclude instaId from updates
+                updates: __, // exclude updates from updates
+                ...bodyFields
+            } = req.body as any;
+
+            // Only include defined fields (not undefined or null)
+            Object.keys(bodyFields).forEach((key) => {
+                if (
+                    bodyFields[key] !== undefined &&
+                    bodyFields[key] !== null &&
+                    bodyFields[key] !== ""
+                ) {
+                    // Convert string numbers to actual numbers for numeric fields
+                    if (
+                        [
+                            "followers",
+                            "following",
+                            "mediaCount",
+                            "avgLikes",
+                            "avgComments",
+                        ].includes(key)
+                    ) {
+                        actualUpdates[key] = Number(bodyFields[key]);
+                    } else if (key === "isVerified") {
+                        // Convert string boolean to actual boolean
+                        actualUpdates[key] =
+                            bodyFields[key] === "true" ||
+                            bodyFields[key] === true;
+                    } else {
+                        actualUpdates[key] = bodyFields[key];
+                    }
+                }
+            });
+        }
+
         if (!instaId) {
             return res.status(400).json({
                 success: false,
@@ -256,7 +301,7 @@ export class MediaKitController {
             });
         }
 
-        if (!updates || Object.keys(updates).length === 0) {
+        if (!actualUpdates || Object.keys(actualUpdates).length === 0) {
             return res.status(400).json({
                 success: false,
                 message: "No updates provided",
@@ -281,8 +326,31 @@ export class MediaKitController {
                 mediaKit.mediaKitProfileImage = mediaKitProfileImageUrl;
             }
 
+            // Calculate engagement rate if all required fields are provided
+            const hasFollowers =
+                "followers" in actualUpdates || mediaKit.followers;
+            const hasAvgLikes =
+                "avgLikes" in actualUpdates || mediaKit.avgLikes;
+            const hasAvgComments =
+                "avgComments" in actualUpdates || mediaKit.avgComments;
+
+            if (hasFollowers && hasAvgLikes && hasAvgComments) {
+                const followers = actualUpdates.followers ?? mediaKit.followers;
+                const avgLikes = actualUpdates.avgLikes ?? mediaKit.avgLikes;
+                const avgComments =
+                    actualUpdates.avgComments ?? mediaKit.avgComments;
+
+                if (followers > 0) {
+                    const engagementRate =
+                        ((Number(avgLikes) + Number(avgComments)) /
+                            Number(followers)) *
+                        100;
+                    actualUpdates.engagement = engagementRate;
+                }
+            }
+
             // Update the provided fields
-            Object.assign(mediaKit, updates);
+            Object.assign(mediaKit, actualUpdates);
             await mediaKit.save();
 
             return res.status(200).json({
