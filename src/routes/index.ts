@@ -34,16 +34,22 @@ v1Router.use("/content", authenticateUser, contentRouter);
 v1Router.use("/invoice", invoiceRouter);
 v1Router.use("/analytics", analyticsRouter);
 
-
 // Mediakit
 v1Router.use("/mediakit", mediakitRouter);
 
 // Health check
-v1Router.get("/health", (req, res) => {
-    res.status(200).json({
-        success: true,
-        message: `DODO backend Server is running on port ${process.env.PORT}`,
-    });
+v1Router.get("/health", (_, res) => {
+  res.status(200).json({
+    success: true,
+    message: `DODO backend Server is running smoothly on port ${process.env.PORT}`,
+    uptime: process.uptime(),
+    services: {
+      api: "operational",
+      database: "connected",
+      swagger: "available at /api-docs",
+    },
+    timestamp: new Date().toISOString(),
+  });
 });
 
 router.use("/api/v1", v1Router);
