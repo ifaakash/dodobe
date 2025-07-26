@@ -23,16 +23,16 @@ const swaggerOptions = {
         },
         servers: [
             {
-                url: "http://localhost:3002",
-                description: "Local Development",
-            },
-            {
                 url: "https://api.dodoclub.in",
                 description: "Production API",
             },
             {
-                url: "https://dodobe.onrender.com",
-                description: "Render Deployment",
+                url: `http://localhost:${config.port}`,
+                description: "Local Development",
+            },
+            {
+                url: "https://dodobe.up.railway.app",
+                description: "Railway Deployment",
             },
             {
                 url: "https://{customUrl}",

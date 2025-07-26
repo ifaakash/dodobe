@@ -25,12 +25,14 @@ interface Config {
 
 export const config: Config = {
     env: process.env.NODE_ENV || "development",
-    port: 3002,
+    port: parseInt(process.env.PORT || "3002"),
     mongoUri: process.env.MONGODB_URI || "mongodb://localhost:27017/dodo",
     jwtSecret:
         process.env.JWT_SECRET || "your-default-secret-key-for-development",
     uploadDir: process.env.UPLOAD_DIR || "uploads",
-    baseUrl: process.env.BASE_URL || "http://localhost:3002",
+    baseUrl:
+        process.env.BASE_URL ||
+        `http://localhost:${process.env.PORT || "3002"}`,
     email: {
         host: process.env.EMAIL_HOST || "smtp.gmail.com",
         port: parseInt(process.env.EMAIL_PORT || "587"),
