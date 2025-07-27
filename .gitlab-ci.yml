@@ -58,7 +58,7 @@ build_deploy_prod:
     - docker tag $PROD_IMAGE_NAME:$PROD_IMAGE_TAG $DOCKERHUB_IMAGE_NAME:latest
     - docker push dodoclub/dodo:latest
 
-build_deploy_dev:
+.build_deploy_dev:
   stage: build_and_deploy
   tags:
     - dodo-group-runner
