@@ -18,15 +18,17 @@ cache:
   paths:
     - node_modules/
 
-# start the runner for image building
-start_ec2:
-  stage: runner_startup
-  # Trigger stage only when the commit branch is either "production" or "development"
+# Trigger the deployment when a Merge request is raised to production branch
+.rules_merge_request: &build_on_MR
   rules:
-    # Trigger the deployment when a Merge request is raised to production branch
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "production"'
       when: always
     - when: never
+
+# start the runner for image building
+start_ec2:
+  stage: runner_startup
+  <<: *build_on_MR
   image: python:3.9
   script:
     - pip install boto3
@@ -39,11 +41,7 @@ build_deploy_prod:
   tags:
     - dodo-group-runner
   image: bitnami/git:latest
-  rules:
-    # Trigger the deployment when a Merge request is raised to production branch
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "production"'
-      when: always
-    - when: never
+  <<: *build_on_MR
   before_script:
     - unset DOCKER_HOST
     - docker login $GITLAB_REGISTRY -u $GITLAB_USERNAME -p $REGISTRY_PASSWORD
@@ -62,15 +60,10 @@ build_deploy_prod:
 
 build_deploy_dev:
   stage: build_and_deploy
-  # Tag for the runner to pick this job
   tags:
     - dodo-group-runner
   image: bitnami/git:latest
-  rules:
-    # Trigger the deployment when a Merge request is raised to production branch
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "production"'
-      when: always
-    - when: never
+  <<: *build_on_MR
   before_script:
     - unset DOCKER_HOST
     - docker login $GITLAB_REGISTRY -u $GITLAB_USERNAME -p $REGISTRY_PASSWORD
@@ -85,12 +78,7 @@ build_deploy_dev:
 # Cleanup runner for any image
 deprecated_image:
   stage: cleanup_runner
-  # Trigger stage only when the commit branch is either "production" or "development"
-  rules:
-    # Trigger the deployment when a Merge request is raised to production branch
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "production"'
-      when: always
-    - when: never
+  <<: *build_on_MR
   tags:
     - dodo-group-runner
   script:
@@ -103,12 +91,7 @@ deprecated_image:
 # stop the runner after deployment
 stop_ec2:
   stage: runner_shutdown
-  # Trigger stage only when the commit branch is either "production" or "development"
-  rules:
-    # Trigger the deployment when a Merge request is raised to production branch
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "production"'
-      when: always
-    - when: never
+  <<: *build_on_MR
   image: python:3.9
   script:
     - pip install boto3
