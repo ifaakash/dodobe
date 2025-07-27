@@ -7,6 +7,7 @@ stages:
 variables:
   AWS_DEFAULT_REGION: "ap-south-1" # mumbai region for AWS
   PROD_IMAGE_NAME: "registry.gitlab.com/dodo1604703/dodobe/production"
+  DOCKERHUB_IMAGE_NAME: "dodoclub/dodo"
   DEV_IMAGE_NAME: "registry.gitlab.com/dodo1604703/dodobe/development"
   # The production auto scaling group is set to pick image with tag publish only
   PROD_IMAGE_TAG: "publish" # Don't change this
@@ -22,8 +23,10 @@ start_ec2:
   stage: runner_startup
   # Trigger stage only when the commit branch is either "production" or "development"
   rules:
-    - if: '$CI_COMMIT_BRANCH == "production" || $CI_COMMIT_BRANCH == "development"'
+    # Trigger the deployment when a Merge request is raised to production branch
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "production"'
       when: always
+    - when: never
   image: python:3.9
   script:
     - pip install boto3
@@ -36,14 +39,7 @@ build_deploy_prod:
   tags:
     - dodo-group-runner
   image: bitnami/git:latest
-  # Run the branch only if the commit tag has regex like production-*( starting with production )
   rules:
-    # Trigger the job only when the commit branch is either "production" or "development"
-    - if: '$CI_COMMIT_BRANCH == "production"'
-      when: always
-    # Trigger the deployment when the push is directly made to production branch
-    - if: "$CI_COMMIT_TAG =~ /^production-.*$/"
-      when: always
     # Trigger the deployment when a Merge request is raised to production branch
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "production"'
       when: always
@@ -56,8 +52,13 @@ build_deploy_prod:
     - docker images
     - docker push $PROD_IMAGE_NAME:$PROD_IMAGE_TAG
     - aws autoscaling start-instance-refresh --auto-scaling-group-name dodo-backend-backup-asg
+    # Push image to Gitlab Container Registry -- for AWS
     - docker tag $PROD_IMAGE_NAME:$PROD_IMAGE_TAG $PROD_IMAGE_NAME:$(date +%Y-%m-%d)
     - docker push $PROD_IMAGE_NAME:$(date +%Y-%m-%d)
+    # Pushing image to Dockerhub –– for RAILWAY"
+    - docker login -u dodoclub -p $DOCKERHUB_PASSWORD
+    - docker tag $PROD_IMAGE_NAME:$PROD_IMAGE_TAG $DOCKERHUB_IMAGE_NAME:latest
+    - docker push dodoclub/dodo:latest
 
 build_deploy_dev:
   stage: build_and_deploy
@@ -66,7 +67,8 @@ build_deploy_dev:
     - dodo-group-runner
   image: bitnami/git:latest
   rules:
-    - if: "$CI_COMMIT_TAG =~ /^development-v.*$/"
+    # Trigger the deployment when a Merge request is raised to production branch
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "production"'
       when: always
     - when: never
   before_script:
@@ -85,8 +87,10 @@ deprecated_image:
   stage: cleanup_runner
   # Trigger stage only when the commit branch is either "production" or "development"
   rules:
-    - if: '$CI_COMMIT_BRANCH == "production" || $CI_COMMIT_BRANCH == "development"'
+    # Trigger the deployment when a Merge request is raised to production branch
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "production"'
       when: always
+    - when: never
   tags:
     - dodo-group-runner
   script:
@@ -94,14 +98,17 @@ deprecated_image:
     - docker rmi -f $(docker images -q) || true
     - echo "Updated list of image in RUNNER instance"
     - docker images
+    - ls
 
 # stop the runner after deployment
 stop_ec2:
   stage: runner_shutdown
   # Trigger stage only when the commit branch is either "production" or "development"
   rules:
-    - if: '$CI_COMMIT_BRANCH == "production" || $CI_COMMIT_BRANCH == "development"'
+    # Trigger the deployment when a Merge request is raised to production branch
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "production"'
       when: always
+    - when: never
   image: python:3.9
   script:
     - pip install boto3
