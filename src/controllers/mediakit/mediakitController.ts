@@ -301,7 +301,11 @@ export class MediaKitController {
             });
         }
 
-        if (!actualUpdates || Object.keys(actualUpdates).length === 0) {
+        // Allow updates if either actualUpdates has fields OR a profile image is provided
+        if (
+            (!actualUpdates || Object.keys(actualUpdates).length === 0) &&
+            !mediaKitProfileImage
+        ) {
             return res.status(400).json({
                 success: false,
                 message: "No updates provided",
