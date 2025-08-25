@@ -166,3 +166,5 @@ Errors are logged using Winston logger and return appropriate HTTP status codes.
 3. Commit your changes (`git commit -m 'Add some amazing feature'`)
 4. Push to the branch (`git push origin feat/amazing-feature`)
 5. Open a Pull Request
+
+# Auguest Release - 25th Aug
