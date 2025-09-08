@@ -19,11 +19,11 @@ cache:
     - node_modules/
 
 # Trigger the deployment when a Merge request is raised to production branch
-.rules_merge_request: &build_on_MR
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "production"'
-      when: always
-    - when: never
+# .rules_merge_request: &build_on_MR
+#   rules:
+#     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "production"'
+#       when: always
+#     - when: never
 
 # start the runner for image building
 start_ec2:
