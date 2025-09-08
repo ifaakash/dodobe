@@ -47,8 +47,12 @@ export class MediaKitController {
         }
 
         try {
+            // Ensure first character of instaId is lowercase
+            const normalizedInstaId =
+                instaId.charAt(0).toLowerCase() + instaId.slice(1);
+
             await MediaKitModel.findOneAndUpdate(
-                { instaId },
+                { instaId: normalizedInstaId },
                 { userId },
                 { upsert: true, new: true }
             );
@@ -199,8 +203,14 @@ export class MediaKitController {
         }
 
         try {
+            // Ensure first character of instaId is lowercase
+            const normalizedInstaId =
+                instaId.charAt(0).toLowerCase() + instaId.slice(1);
+
             // Check if a media kit already exists for this instaId
-            const existingMediaKit = await MediaKitModel.findOne({ instaId });
+            const existingMediaKit = await MediaKitModel.findOne({
+                instaId: normalizedInstaId,
+            });
             if (existingMediaKit) {
                 return res.status(409).json({
                     success: false,
@@ -217,7 +227,7 @@ export class MediaKitController {
 
             // Create new media kit
             const mediaKit = await MediaKitModel.create({
-                instaId,
+                instaId: normalizedInstaId,
                 isVerified: verified,
                 followers,
                 following,
@@ -703,6 +713,10 @@ export class MediaKitController {
         }
 
         try {
+            // Ensure first character of instaId is lowercase
+            const normalizedInstaId =
+                instaId.charAt(0).toLowerCase() + instaId.slice(1);
+
             // Convert string userId to ObjectId
             const userObjectId = new mongoose.Types.ObjectId(userId);
 
@@ -718,7 +732,9 @@ export class MediaKitController {
             }
 
             // Check if instaId already exists
-            const existingMediaKit = await MediaKitModel.findOne({ instaId });
+            const existingMediaKit = await MediaKitModel.findOne({
+                instaId: normalizedInstaId,
+            });
             if (existingMediaKit) {
                 return res.status(409).json({
                     success: false,
@@ -742,7 +758,7 @@ export class MediaKitController {
 
             // Create new media kit with default values and waitlist data
             const mediaKit = await MediaKitModel.create({
-                instaId,
+                instaId: normalizedInstaId,
                 userId: userObjectId,
                 isVerified: false,
                 followers: 0,
@@ -766,7 +782,7 @@ export class MediaKitController {
             // Send notification email to admin team
             try {
                 await emailService.notifyAdminNewWaitlistRequest({
-                    instaId,
+                    instaId: normalizedInstaId,
                     userName: user.name || undefined,
                     userEmail: user.email || undefined,
                     userId: userId,
@@ -774,7 +790,9 @@ export class MediaKitController {
                     queueNumber,
                     createdAt,
                 });
-                logger.info(`Waitlist notification email sent for ${instaId}`);
+                logger.info(
+                    `Waitlist notification email sent for ${normalizedInstaId}`
+                );
             } catch (emailError) {
                 // Log email error but don't fail the request
                 logger.error(
