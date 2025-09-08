@@ -464,15 +464,30 @@ export class MediaKitController {
         res: Response<UpdateBrandCollabResponse>
     ) {
         const { instaId, brandId, updates } = req.body;
+        const brandLogo = req.file;
 
-        if (!instaId || !brandId) {
-            return res.status(400).json({
-                success: false,
-                message: "instaId and brandId are required",
-            });
+        // Handle form-urlencoded data by extracting individual fields
+        let actualUpdates: any = {};
+
+        if (updates && typeof updates === "object") {
+            // JSON format with updates object
+            actualUpdates = updates;
+        } else {
+            // Form-urlencoded format - extract individual fields from req.body
+            const {
+                instaId: _, // exclude instaId from updates
+                brandId: __, // exclude brandId from updates
+                updates: ___, // exclude updates from updates
+                ...bodyFields
+            } = req.body as any;
+            actualUpdates = bodyFields;
         }
 
-        if (!updates || Object.keys(updates).length === 0) {
+        // Check if we have any updates or a file upload
+        if (
+            (!actualUpdates || Object.keys(actualUpdates).length === 0) &&
+            !brandLogo
+        ) {
             return res.status(400).json({
                 success: false,
                 message: "No updates provided",
@@ -480,7 +495,13 @@ export class MediaKitController {
         }
 
         try {
-            const mediaKit = await MediaKitModel.findOne({ instaId });
+            // Ensure first character of instaId is lowercase
+            const normalizedInstaId =
+                instaId.charAt(0).toLowerCase() + instaId.slice(1);
+
+            const mediaKit = await MediaKitModel.findOne({
+                instaId: normalizedInstaId,
+            });
 
             if (!mediaKit) {
                 return res.status(404).json({
@@ -508,11 +529,44 @@ export class MediaKitController {
                 });
             }
 
+            // Handle brand logo upload if provided
+            let brandLogoUrl;
+            if (brandLogo) {
+                brandLogoUrl = await uploadToS3(brandLogo, "brand-logos");
+            }
+
             // Update the brand collaboration
-            Object.assign(mediaKit.brandCollabs.brands[brandIndex], {
-                ...updates,
+            const updateData: any = {
+                ...actualUpdates,
                 updatedAt: new Date(),
+            };
+
+            // Remove brandLogo from updates if it's not a valid string (to prevent validation errors)
+            if (
+                updateData.brandLogo &&
+                typeof updateData.brandLogo !== "string"
+            ) {
+                delete updateData.brandLogo;
+            }
+
+            // Filter out any other invalid fields that might cause validation errors
+            Object.keys(updateData).forEach((key) => {
+                if (
+                    updateData[key] === null ||
+                    updateData[key] === undefined ||
+                    (typeof updateData[key] === "object" &&
+                        Object.keys(updateData[key]).length === 0)
+                ) {
+                    delete updateData[key];
+                }
             });
+
+            // Add brand logo URL if uploaded
+            if (brandLogoUrl) {
+                updateData.brandLogo = brandLogoUrl;
+            }
+
+            Object.assign(mediaKit.brandCollabs.brands[brandIndex], updateData);
 
             await mediaKit.save();
 

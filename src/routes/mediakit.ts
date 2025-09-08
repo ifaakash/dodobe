@@ -34,6 +34,8 @@ router.post(
 router.patch(
     "/update-brand-collab",
     // authenticateUser,
+    upload.single("brandLogo"),
+    handleFileUploadError,
     MediaKitController.updateBrandCollab
 );
 
