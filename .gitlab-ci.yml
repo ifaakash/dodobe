@@ -28,7 +28,6 @@ cache:
 # start the runner for image building
 start_ec2:
   stage: runner_startup
-  <<: *build_on_MR
   image: python:3.9
   script:
     - pip install boto3
@@ -41,7 +40,6 @@ build_deploy_prod:
   tags:
     - dodo-group-runner
   image: bitnami/git:latest
-  <<: *build_on_MR
   before_script:
     - unset DOCKER_HOST
     - docker login $GITLAB_REGISTRY -u $GITLAB_USERNAME -p $REGISTRY_PASSWORD
@@ -63,7 +61,6 @@ build_deploy_prod:
   tags:
     - dodo-group-runner
   image: bitnami/git:latest
-  <<: *build_on_MR
   before_script:
     - unset DOCKER_HOST
     - docker login $GITLAB_REGISTRY -u $GITLAB_USERNAME -p $REGISTRY_PASSWORD
@@ -78,7 +75,6 @@ build_deploy_prod:
 # Cleanup runner for any image
 deprecated_image:
   stage: cleanup_runner
-  <<: *build_on_MR
   tags:
     - dodo-group-runner
   script:
@@ -91,7 +87,6 @@ deprecated_image:
 # stop the runner after deployment
 stop_ec2:
   stage: runner_shutdown
-  <<: *build_on_MR
   image: python:3.9
   script:
     - pip install boto3
