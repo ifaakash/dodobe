@@ -1,4 +1,4 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import { config } from "../config";
 import { logger } from "./logger";
 
@@ -13,31 +13,16 @@ interface WaitlistNotificationData {
 }
 
 class EmailService {
-    private transporter: nodemailer.Transporter;
-
+    private resend: Resend;
+    
     constructor() {
-        this.transporter = nodemailer.createTransport({
-            host: config.email.host,
-            port: config.email.port,
-            secure: config.email.secure,
-            auth: {
-                user: config.email.user,
-                pass: config.email.pass,
-            },
-        });
-
-        // Verify connection configuration
-        this.verifyConnection();
+        // Initialize Resend with API key
+        this.resend = new Resend(config.email.pass);
+        
+        // Log successful initialization
+        logger.info("Resend email service initialized");
     }
 
-    private async verifyConnection(): Promise<void> {
-        try {
-            await this.transporter.verify();
-            logger.info("Email service connected successfully");
-        } catch (error) {
-            logger.error("Email service connection failed:", error);
-        }
-    }
 
     public async notifyAdminNewWaitlistRequest(
         data: WaitlistNotificationData
@@ -102,7 +87,13 @@ Links:
                 html: htmlContent,
             };
 
-            await this.transporter.sendMail(mailOptions);
+            await this.resend.emails.send({
+                from: mailOptions.from,
+                to: mailOptions.to,
+                subject: mailOptions.subject,
+                text: mailOptions.text,
+                html: mailOptions.html
+            });
 
             logger.info(
                 `Waitlist notification email sent successfully for ${instaId}`
@@ -130,7 +121,13 @@ Links:
                 `,
             };
 
-            await this.transporter.sendMail(mailOptions);
+            await this.resend.emails.send({
+                from: mailOptions.from,
+                to: mailOptions.to,
+                subject: mailOptions.subject,
+                text: mailOptions.text,
+                html: mailOptions.html
+            });
             logger.info("Test email sent successfully");
             return true;
         } catch (error) {

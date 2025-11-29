@@ -34,11 +34,11 @@ export const config: Config = {
         process.env.BASE_URL ||
         `http://localhost:${process.env.PORT || "3002"}`,
     email: {
-        host: process.env.EMAIL_HOST || "smtp.gmail.com",
-        port: parseInt(process.env.EMAIL_PORT || "587"),
+        host: process.env.EMAIL_HOST || "api.resend.com",
+        port: parseInt(process.env.EMAIL_PORT || "443"),
         secure: process.env.EMAIL_SECURE === "true",
-        user: process.env.EMAIL_USER || "work.dodoclub@gmail.com",
-        pass: process.env.EMAIL_PASS || "",
+        user: process.env.EMAIL_USER || "",
+        pass: process.env.RESEND_API_KEY || "",
         from: process.env.EMAIL_FROM || "work.dodoclub@gmail.com",
         adminEmail: process.env.ADMIN_EMAIL || "work.dodoclub@gmail.com",
     },

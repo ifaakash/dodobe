@@ -14,7 +14,8 @@
         "clean": "rm -rf dist node_modules",
         "create-mediakit": "ts-node-dev src/script/create-bulk-mediakit.ts",
         "download-thumbnail": "ts-node-dev src/script/download-thumbnail.ts",
-        "test-email": "ts-node-dev src/script/test-email.ts"
+        "test-email": "ts-node-dev src/script/test-email.ts",
+        "test-resend": "ts-node-dev src/script/test-resend.ts"
     },
     "keywords": [],
     "author": "",
@@ -40,6 +41,7 @@
         "nodemailer": "^7.0.5",
         "openapi-types": "^12.1.3",
         "qs": "^6.13.0",
+        "resend": "^6.5.2",
         "swagger-jsdoc": "^6.2.8",
         "swagger-ui-express": "^5.0.1",
         "winston": "^3.17.0"

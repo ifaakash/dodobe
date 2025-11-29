@@ -65,6 +65,15 @@ src/
    JWT_SECRET=your-secret-key
    UPLOAD_DIR=uploads
    BASE_URL=http://localhost:3000
+   
+   # Email configuration (Resend)
+   EMAIL_HOST=api.resend.com
+   EMAIL_PORT=443
+   EMAIL_SECURE=true
+   EMAIL_USER=
+   RESEND_API_KEY=your-resend-api-key
+   EMAIL_FROM=your-verified-sender@example.com
+   ADMIN_EMAIL=admin@example.com
    ```
 
 ## Development
